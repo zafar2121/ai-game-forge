@@ -180,16 +180,26 @@ export function ProjectPanel({ project }: { project: GeneratedProject }) {
       <div className="panel flex flex-col items-center justify-between gap-4 p-6 sm:flex-row">
         <div className="flex items-center gap-3">
           <Cpu className="size-5 text-primary" />
-          <p className="text-sm text-muted-foreground">
-            Export includes every script, folder map and design doc as a .rbxl-ready bundle.
-          </p>
+          <div>
+            <p className="text-sm text-muted-foreground">
+              Export includes every script, folder map and design doc as a .rbxl-ready bundle.
+            </p>
+            {error && <p className="mt-1 text-sm text-destructive">{error}</p>}
+          </div>
         </div>
         <button
           type="button"
+          onClick={handleDownload}
+          disabled={downloading}
           className="btn-primary inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold sm:w-auto"
         >
-          <Download className="size-4" />
-          Download Project
+          {downloading ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Download className="size-4" />
+          )}
+          {downloading ? "Preparing download..." : "Download Project"}
+
         </button>
       </div>
     </div>
