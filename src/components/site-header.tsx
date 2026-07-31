@@ -36,12 +36,6 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
-          <Link
-            to="/login"
-            className="ml-2 rounded-lg border border-border px-3.5 py-2 text-sm text-foreground transition-colors hover:bg-secondary"
-          >
-            Login
-          </Link>
         </nav>
 
         <button
