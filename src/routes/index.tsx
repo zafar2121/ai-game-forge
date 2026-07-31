@@ -99,7 +99,7 @@ function Home() {
           </p>
         </div>
 
-        <div className="mx-auto mt-12 max-w-3xl">
+        <div ref={generatorRef} className="mx-auto mt-12 max-w-3xl scroll-mt-24">
           <div className="panel p-2.5">
             <textarea
               value={prompt}
@@ -114,10 +114,13 @@ function Home() {
               </p>
               <button
                 type="button"
-                onClick={handleGenerate}
+                onClick={() => handleGenerate()}
                 disabled={!prompt.trim() || loading}
-                className="btn-primary inline-flex items-center justify-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold"
+                className={`btn-primary inline-flex items-center justify-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold ${
+                  highlight ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""
+                }`}
               >
+
                 {loading ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (
