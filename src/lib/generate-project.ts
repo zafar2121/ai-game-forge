@@ -7,7 +7,9 @@ export type GeneratedProject = {
   npcs: { name: string; role: string; behavior: string }[];
   economy: { label: string; value: string }[];
   monetization: { name: string; price: string; detail: string }[];
+  assets?: { name: string; type: string; detail: string }[];
 };
+
 
 /** Placeholder AI response — swapped for a real model later. */
 export function generateProject(prompt: string): GeneratedProject {
