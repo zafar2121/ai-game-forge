@@ -42,11 +42,14 @@ function Home() {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   const [project, setProject] = useState<GeneratedProject | null>(null);
 
   function handleGenerate() {
-    if (!prompt.trim() || loading) return;
+    if (loading) return;
+    const input = prompt.trim() || EXAMPLES[0];
     setLoading(true);
+    setError(null);
     setProject(null);
     setStep(0);
 
@@ -54,10 +57,24 @@ function Home() {
       window.setTimeout(() => setStep(i), i * 650);
     });
     window.setTimeout(() => {
-      setProject(generateProject(prompt));
-      setLoading(false);
+      try {
+        const result = generateProject(input);
+        if (!result || !result.scripts?.length) {
+          throw new Error("The generator returned an empty project.");
+        }
+        setProject(result);
+      } catch (e) {
+        setError(
+          e instanceof Error
+            ? `Generation failed: ${e.message}`
+            : "Generation failed. Please try again.",
+        );
+      } finally {
+        setLoading(false);
+      }
     }, STEPS.length * 650 + 400);
   }
+
 
   return (
     <div className="relative">
