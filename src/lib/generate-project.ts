@@ -7,7 +7,9 @@ export type GeneratedProject = {
   npcs: { name: string; role: string; behavior: string }[];
   economy: { label: string; value: string }[];
   monetization: { name: string; price: string; detail: string }[];
+  assets?: { name: string; type: string; detail: string }[];
 };
+
 
 /** Placeholder AI response — swapped for a real model later. */
 export function generateProject(prompt: string): GeneratedProject {
@@ -164,7 +166,15 @@ return CombatService`,
       { name: "Lucky Egg (Dev Product)", price: "99 R$", detail: "Repeatable purchase with boosted legendary odds." },
       { name: "Season Pass", price: "649 R$", detail: "30-day cosmetic + pet track that resets monthly for recurring revenue." },
     ],
+    assets: [
+      { name: "Pet meshes (12)", type: "Mesh", detail: "Common → Secret tiers, shared rig for reusable animations." },
+      { name: "Egg models (4)", type: "Model", detail: "Basic, Golden, Void and Event eggs with hatch VFX attachments." },
+      { name: "Island kit", type: "Environment", detail: "Modular terrain tiles, props and skybox variants per zone." },
+      { name: "UI icon pack", type: "Image", detail: "Currency, quest, boss and shop icons at 256×256." },
+      { name: "Audio pack", type: "Sound", detail: "Collect blip, hatch fanfare, boss roar and ambient loops." },
+    ],
   };
+
 }
 
 function toTitle(raw: string) {
