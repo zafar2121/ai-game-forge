@@ -112,7 +112,7 @@ function Home() {
               <button
                 type="button"
                 onClick={handleGenerate}
-                disabled={!prompt.trim() || loading}
+                disabled={loading}
                 className="btn-primary inline-flex items-center justify-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold"
               >
                 {loading ? (
