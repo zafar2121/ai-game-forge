@@ -38,6 +38,9 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
+          <span className="ml-2 rounded-lg border border-border bg-surface/60 px-3 py-1.5 font-mono text-xs text-muted-foreground">
+            ⚡ Credits: {credits ?? "—"}
+          </span>
         </nav>
 
         <button
