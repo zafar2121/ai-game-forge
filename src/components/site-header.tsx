@@ -65,6 +65,9 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
+          <span className="mt-1 block rounded-lg px-2 py-2.5 font-mono text-xs text-muted-foreground">
+            ⚡ Credits: {credits ?? "—"}
+          </span>
         </div>
       )}
     </header>
