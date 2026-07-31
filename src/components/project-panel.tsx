@@ -1,7 +1,9 @@
 import { useState } from "react";
 import {
   ChevronRight,
+  Boxes,
   Coins,
+
   Cpu,
   Download,
   FolderTree,
