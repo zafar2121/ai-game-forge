@@ -52,9 +52,12 @@ function Home() {
   const [project, setProject] = useState<GeneratedProject | null>(null);
   const [highlight, setHighlight] = useState(false);
   const generatorRef = useRef<HTMLDivElement>(null);
+  const credits = useCredits();
+  const noCredits = credits === 0;
 
   function handleGenerate(value = prompt) {
     if (!value.trim() || loading) return;
+    if (!spendCredit()) return;
     setLoading(true);
     setProject(null);
     setStep(0);
@@ -67,6 +70,7 @@ function Home() {
       setLoading(false);
     }, STEPS.length * 650 + 400);
   }
+
 
   useEffect(() => {
     if (!search.prompt) return;
