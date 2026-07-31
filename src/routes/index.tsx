@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Loader2, Sparkles, Wand2 } from "lucide-react";
 import { ProjectPanel } from "@/components/project-panel";
 import { generateProject, type GeneratedProject } from "@/lib/generate-project";
+import { spendCredit, useCredits } from "@/lib/credits";
 
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -51,9 +52,12 @@ function Home() {
   const [project, setProject] = useState<GeneratedProject | null>(null);
   const [highlight, setHighlight] = useState(false);
   const generatorRef = useRef<HTMLDivElement>(null);
+  const credits = useCredits();
+  const noCredits = credits === 0;
 
   function handleGenerate(value = prompt) {
     if (!value.trim() || loading) return;
+    if (!spendCredit()) return;
     setLoading(true);
     setProject(null);
     setStep(0);
@@ -66,6 +70,7 @@ function Home() {
       setLoading(false);
     }, STEPS.length * 650 + 400);
   }
+
 
   useEffect(() => {
     if (!search.prompt) return;
@@ -115,7 +120,7 @@ function Home() {
               <button
                 type="button"
                 onClick={() => handleGenerate()}
-                disabled={!prompt.trim() || loading}
+                disabled={!prompt.trim() || loading || noCredits}
                 className={`btn-primary inline-flex items-center justify-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold ${
                   highlight ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""
                 }`}
@@ -129,7 +134,13 @@ function Home() {
                 Generate Game
               </button>
             </div>
+            {noCredits && (
+              <p className="border-t border-border/70 px-3 pb-3 pt-3 text-sm text-muted-foreground">
+                You have no credits left. Come back tomorrow to receive 3 free credits.
+              </p>
+            )}
           </div>
+
 
           {!project && !loading && (
             <div className="mt-4 flex flex-wrap justify-center gap-2">

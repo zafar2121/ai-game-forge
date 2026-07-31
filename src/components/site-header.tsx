@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Menu, X, Sparkles } from "lucide-react";
+import { useCredits } from "@/lib/credits";
 
 const nav = [
   { to: "/", label: "Home" },
@@ -10,6 +11,7 @@ const nav = [
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const credits = useCredits();
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/70 backdrop-blur-xl">
@@ -36,6 +38,9 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
+          <span className="ml-2 rounded-lg border border-border bg-surface/60 px-3 py-1.5 font-mono text-xs text-muted-foreground">
+            ⚡ Credits: {credits ?? "—"}
+          </span>
         </nav>
 
         <button
@@ -60,6 +65,9 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
+          <span className="mt-1 block rounded-lg px-2 py-2.5 font-mono text-xs text-muted-foreground">
+            ⚡ Credits: {credits ?? "—"}
+          </span>
         </div>
       )}
     </header>
