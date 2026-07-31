@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Loader2, Sparkles, Wand2 } from "lucide-react";
 import { ProjectPanel } from "@/components/project-panel";
 import { generateProject, type GeneratedProject } from "@/lib/generate-project";
+import { spendCredit, useCredits } from "@/lib/credits";
 
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>) => ({
