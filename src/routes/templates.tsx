@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { Wand2 } from "lucide-react";
 
 const templates = [
@@ -66,8 +67,10 @@ export const Route = createFileRoute("/templates")({
 
 function Templates() {
   const navigate = useNavigate();
+  const [selected, setSelected] = useState<string | null>(null);
 
-  function open(prompt: string, go?: boolean) {
+  function open(name: string, prompt: string, go?: boolean) {
+    setSelected(name);
     navigate({ to: "/", search: go ? { prompt, go: true } : { prompt } });
   }
 
@@ -83,14 +86,17 @@ function Templates() {
             key={t.name}
             role="button"
             tabIndex={0}
-            onClick={() => open(t.prompt)}
+            aria-pressed={selected === t.name}
+            onClick={() => open(t.name, t.prompt)}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
-                open(t.prompt);
+                open(t.name, t.prompt);
               }
             }}
-            className="panel cursor-pointer p-6 transition-colors hover:border-primary/40"
+            className={`panel cursor-pointer p-6 transition-colors hover:border-primary/40 ${
+              selected === t.name ? "border-primary/60" : ""
+            }`}
           >
             <span className="rounded-full bg-accent/12 px-2.5 py-0.5 text-[11px] text-accent">
               {t.tag}
@@ -101,7 +107,7 @@ function Templates() {
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                open(t.prompt, true);
+                open(t.name, t.prompt, true);
               }}
               className="btn-primary mt-5 inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold"
             >
