@@ -36,12 +36,6 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
-          <Link
-            to="/login"
-            className="ml-2 rounded-lg border border-border px-3.5 py-2 text-sm text-foreground transition-colors hover:bg-secondary"
-          >
-            Login
-          </Link>
         </nav>
 
         <button
@@ -56,7 +50,7 @@ export function SiteHeader() {
 
       {open && (
         <div className="border-t border-border bg-background px-5 py-3 md:hidden">
-          {[...nav, { to: "/login", label: "Login" } as const].map((item) => (
+          {nav.map((item) => (
             <Link
               key={item.to}
               to={item.to}
