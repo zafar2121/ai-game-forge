@@ -1,10 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Loader2, Sparkles, Wand2 } from "lucide-react";
 import { ProjectPanel } from "@/components/project-panel";
 import { generateProject, type GeneratedProject } from "@/lib/generate-project";
 
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    prompt: typeof search.prompt === "string" ? search.prompt : undefined,
+    go: search.go === true || search.go === "true" ? true : undefined,
+  }),
+
   head: () => ({
     meta: [
       { title: "Roblox AI Builder — Generate Roblox Games with AI" },
@@ -39,13 +44,16 @@ const EXAMPLES = [
 ];
 
 function Home() {
-  const [prompt, setPrompt] = useState("");
+  const search = Route.useSearch();
+  const [prompt, setPrompt] = useState(search.prompt ?? "");
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
   const [project, setProject] = useState<GeneratedProject | null>(null);
+  const [highlight, setHighlight] = useState(false);
+  const generatorRef = useRef<HTMLDivElement>(null);
 
-  function handleGenerate() {
-    if (!prompt.trim() || loading) return;
+  function handleGenerate(value = prompt) {
+    if (!value.trim() || loading) return;
     setLoading(true);
     setProject(null);
     setStep(0);
@@ -54,10 +62,22 @@ function Home() {
       window.setTimeout(() => setStep(i), i * 650);
     });
     window.setTimeout(() => {
-      setProject(generateProject(prompt));
+      setProject(generateProject(value));
       setLoading(false);
     }, STEPS.length * 650 + 400);
   }
+
+  useEffect(() => {
+    if (!search.prompt) return;
+    setPrompt(search.prompt);
+    generatorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setHighlight(true);
+    const t = window.setTimeout(() => setHighlight(false), 2600);
+    if (search.go) handleGenerate(search.prompt);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.prompt, search.go]);
+
 
   return (
     <div className="relative">
@@ -79,7 +99,7 @@ function Home() {
           </p>
         </div>
 
-        <div className="mx-auto mt-12 max-w-3xl">
+        <div ref={generatorRef} className="mx-auto mt-12 max-w-3xl scroll-mt-24">
           <div className="panel p-2.5">
             <textarea
               value={prompt}
@@ -94,10 +114,13 @@ function Home() {
               </p>
               <button
                 type="button"
-                onClick={handleGenerate}
+                onClick={() => handleGenerate()}
                 disabled={!prompt.trim() || loading}
-                className="btn-primary inline-flex items-center justify-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold"
+                className={`btn-primary inline-flex items-center justify-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold ${
+                  highlight ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""
+                }`}
               >
+
                 {loading ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (
