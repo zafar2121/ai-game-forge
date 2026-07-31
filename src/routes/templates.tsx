@@ -107,7 +107,7 @@ function Templates() {
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                open(t.prompt, true);
+                open(t.name, t.prompt, true);
               }}
               className="btn-primary mt-5 inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold"
             >
