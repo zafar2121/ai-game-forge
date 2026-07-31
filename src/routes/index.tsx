@@ -44,13 +44,16 @@ const EXAMPLES = [
 ];
 
 function Home() {
-  const [prompt, setPrompt] = useState("");
+  const search = Route.useSearch();
+  const [prompt, setPrompt] = useState(search.prompt ?? "");
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
   const [project, setProject] = useState<GeneratedProject | null>(null);
+  const [highlight, setHighlight] = useState(false);
+  const generatorRef = useRef<HTMLDivElement>(null);
 
-  function handleGenerate() {
-    if (!prompt.trim() || loading) return;
+  function handleGenerate(value = prompt) {
+    if (!value.trim() || loading) return;
     setLoading(true);
     setProject(null);
     setStep(0);
@@ -59,10 +62,22 @@ function Home() {
       window.setTimeout(() => setStep(i), i * 650);
     });
     window.setTimeout(() => {
-      setProject(generateProject(prompt));
+      setProject(generateProject(value));
       setLoading(false);
     }, STEPS.length * 650 + 400);
   }
+
+  useEffect(() => {
+    if (!search.prompt) return;
+    setPrompt(search.prompt);
+    generatorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setHighlight(true);
+    const t = window.setTimeout(() => setHighlight(false), 2600);
+    if (search.go) handleGenerate(search.prompt);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.prompt, search.go]);
+
 
   return (
     <div className="relative">
