@@ -125,6 +125,14 @@ function Home() {
             </div>
           </div>
 
+          {error && !loading && (
+            <div className="mt-4 animate-fade-in rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+
+
+
           {!project && !loading && (
             <div className="mt-4 flex flex-wrap justify-center gap-2">
               {EXAMPLES.map((e) => (
