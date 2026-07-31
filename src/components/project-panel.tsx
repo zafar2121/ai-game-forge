@@ -11,8 +11,11 @@ import {
   FileCode2,
   Check,
   Copy,
+  Loader2,
 } from "lucide-react";
 import type { GeneratedProject } from "@/lib/generate-project";
+import { buildProjectZip, downloadBlob } from "@/lib/build-project-zip";
+
 
 function Section({
   icon: Icon,
@@ -39,7 +42,28 @@ function Section({
 export function ProjectPanel({ project }: { project: GeneratedProject }) {
   const [active, setActive] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const script = project.scripts[active];
+
+  async function handleDownload() {
+    if (downloading) return;
+    setDownloading(true);
+    setError(null);
+    try {
+      const blob = await buildProjectZip(project);
+      const name =
+        project.title.replace(/[^A-Za-z0-9]+/g, "_").replace(/^_|_$/g, "") || "RobloxProject";
+      downloadBlob(blob, `${name}.zip`);
+    } catch (e) {
+      setError(
+        e instanceof Error ? `Could not create the ZIP: ${e.message}` : "Could not create the ZIP.",
+      );
+    } finally {
+      setDownloading(false);
+    }
+  }
+
 
   return (
     <div className="animate-fade-in space-y-5">
@@ -156,16 +180,26 @@ export function ProjectPanel({ project }: { project: GeneratedProject }) {
       <div className="panel flex flex-col items-center justify-between gap-4 p-6 sm:flex-row">
         <div className="flex items-center gap-3">
           <Cpu className="size-5 text-primary" />
-          <p className="text-sm text-muted-foreground">
-            Export includes every script, folder map and design doc as a .rbxl-ready bundle.
-          </p>
+          <div>
+            <p className="text-sm text-muted-foreground">
+              Export includes every script, folder map and design doc as a .rbxl-ready bundle.
+            </p>
+            {error && <p className="mt-1 text-sm text-destructive">{error}</p>}
+          </div>
         </div>
         <button
           type="button"
+          onClick={handleDownload}
+          disabled={downloading}
           className="btn-primary inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold sm:w-auto"
         >
-          <Download className="size-4" />
-          Download Project
+          {downloading ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Download className="size-4" />
+          )}
+          {downloading ? "Preparing download..." : "Download Project"}
+
         </button>
       </div>
     </div>
