@@ -42,7 +42,28 @@ function Section({
 export function ProjectPanel({ project }: { project: GeneratedProject }) {
   const [active, setActive] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const script = project.scripts[active];
+
+  async function handleDownload() {
+    if (downloading) return;
+    setDownloading(true);
+    setError(null);
+    try {
+      const blob = await buildProjectZip(project);
+      const name =
+        project.title.replace(/[^A-Za-z0-9]+/g, "_").replace(/^_|_$/g, "") || "RobloxProject";
+      downloadBlob(blob, `${name}.zip`);
+    } catch (e) {
+      setError(
+        e instanceof Error ? `Could not create the ZIP: ${e.message}` : "Could not create the ZIP.",
+      );
+    } finally {
+      setDownloading(false);
+    }
+  }
+
 
   return (
     <div className="animate-fade-in space-y-5">
