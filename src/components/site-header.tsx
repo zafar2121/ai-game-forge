@@ -50,7 +50,7 @@ export function SiteHeader() {
 
       {open && (
         <div className="border-t border-border bg-background px-5 py-3 md:hidden">
-          {[...nav, { to: "/login", label: "Login" } as const].map((item) => (
+          {nav.map((item) => (
             <Link
               key={item.to}
               to={item.to}
