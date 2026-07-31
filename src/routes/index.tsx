@@ -120,7 +120,7 @@ function Home() {
               <button
                 type="button"
                 onClick={() => handleGenerate()}
-                disabled={!prompt.trim() || loading}
+                disabled={!prompt.trim() || loading || noCredits}
                 className={`btn-primary inline-flex items-center justify-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold ${
                   highlight ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""
                 }`}
@@ -134,7 +134,13 @@ function Home() {
                 Generate Game
               </button>
             </div>
+            {noCredits && (
+              <p className="border-t border-border/70 px-3 pb-3 pt-3 text-sm text-muted-foreground">
+                You have no credits left. Come back tomorrow to receive 3 free credits.
+              </p>
+            )}
           </div>
+
 
           {!project && !loading && (
             <div className="mt-4 flex flex-wrap justify-center gap-2">
