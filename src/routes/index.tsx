@@ -42,14 +42,11 @@ function Home() {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
-  const [error, setError] = useState<string | null>(null);
   const [project, setProject] = useState<GeneratedProject | null>(null);
 
   function handleGenerate() {
-    if (loading) return;
-    const input = prompt.trim() || EXAMPLES[0];
+    if (!prompt.trim() || loading) return;
     setLoading(true);
-    setError(null);
     setProject(null);
     setStep(0);
 
@@ -57,24 +54,10 @@ function Home() {
       window.setTimeout(() => setStep(i), i * 650);
     });
     window.setTimeout(() => {
-      try {
-        const result = generateProject(input);
-        if (!result || !result.scripts?.length) {
-          throw new Error("The generator returned an empty project.");
-        }
-        setProject(result);
-      } catch (e) {
-        setError(
-          e instanceof Error
-            ? `Generation failed: ${e.message}`
-            : "Generation failed. Please try again.",
-        );
-      } finally {
-        setLoading(false);
-      }
+      setProject(generateProject(prompt));
+      setLoading(false);
     }, STEPS.length * 650 + 400);
   }
-
 
   return (
     <div className="relative">
@@ -112,7 +95,7 @@ function Home() {
               <button
                 type="button"
                 onClick={handleGenerate}
-                disabled={loading}
+                disabled={!prompt.trim() || loading}
                 className="btn-primary inline-flex items-center justify-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold"
               >
                 {loading ? (
@@ -124,14 +107,6 @@ function Home() {
               </button>
             </div>
           </div>
-
-          {error && !loading && (
-            <div className="mt-4 animate-fade-in rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
-              {error}
-            </div>
-          )}
-
-
 
           {!project && !loading && (
             <div className="mt-4 flex flex-wrap justify-center gap-2">

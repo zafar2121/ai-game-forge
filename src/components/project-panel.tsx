@@ -1,9 +1,7 @@
 import { useState } from "react";
 import {
   ChevronRight,
-  Boxes,
   Coins,
-
   Cpu,
   Download,
   FolderTree,
@@ -153,26 +151,7 @@ export function ProjectPanel({ project }: { project: GeneratedProject }) {
             ))}
           </div>
         </Section>
-
-        {project.assets && project.assets.length > 0 && (
-          <Section icon={Boxes} title="Assets">
-            <div className="space-y-3">
-              {project.assets.map((a) => (
-                <div key={a.name} className="rounded-lg border border-border bg-background/40 p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-medium">{a.name}</p>
-                    <span className="rounded-full bg-primary/12 px-2.5 py-0.5 text-[11px] text-primary">
-                      {a.type}
-                    </span>
-                  </div>
-                  <p className="mt-1.5 text-sm text-muted-foreground">{a.detail}</p>
-                </div>
-              ))}
-            </div>
-          </Section>
-        )}
       </div>
-
 
       <div className="panel flex flex-col items-center justify-between gap-4 p-6 sm:flex-row">
         <div className="flex items-center gap-3">
