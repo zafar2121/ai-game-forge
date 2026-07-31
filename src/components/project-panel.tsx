@@ -11,8 +11,11 @@ import {
   FileCode2,
   Check,
   Copy,
+  Loader2,
 } from "lucide-react";
 import type { GeneratedProject } from "@/lib/generate-project";
+import { buildProjectZip, downloadBlob } from "@/lib/build-project-zip";
+
 
 function Section({
   icon: Icon,
