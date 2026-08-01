@@ -16,6 +16,14 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const credits = useCreditBalance();
   const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  async function handleSignOut() {
+    setOpen(false);
+    await signOut();
+    navigate({ to: "/", replace: true });
+  }
+
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/70 backdrop-blur-xl">
