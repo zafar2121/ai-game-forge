@@ -70,7 +70,7 @@ export function SiteHeader() {
               </span>
               <button
                 type="button"
-                onClick={() => signOut()}
+                onClick={() => void handleSignOut()}
                 className="rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 Log Out
