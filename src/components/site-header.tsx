@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Menu, X, Sparkles } from "lucide-react";
 import { formatCredits } from "@/lib/credits";
