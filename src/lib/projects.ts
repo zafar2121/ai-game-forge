@@ -14,7 +14,7 @@ export async function saveProject(userId: string, prompt: string, project: Gener
     user_id: userId,
     title: project.title,
     prompt,
-    data: project as unknown as Record<string, unknown>,
+    data: JSON.parse(JSON.stringify(project)),
   });
   if (error) throw error;
 }
