@@ -66,11 +66,13 @@ export const Route = createFileRoute("/pricing")({
 });
 
 function Pricing() {
+  const { user, profile, updatePlan } = useAuth();
   const [current, setCurrent] = useState<Plan>("free");
 
   useEffect(() => {
-    setCurrent(readPlan());
-  }, []);
+    setCurrent(user ? (profile?.plan ?? "free") : readPlan());
+  }, [user, profile?.plan]);
+
 
   return (
     <main className="mx-auto max-w-5xl px-5 py-20">
