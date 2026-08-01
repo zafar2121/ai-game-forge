@@ -53,12 +53,14 @@ function Home() {
   const [project, setProject] = useState<GeneratedProject | null>(null);
   const [highlight, setHighlight] = useState(false);
   const generatorRef = useRef<HTMLDivElement>(null);
-  const credits = useCredits();
+  const credits = useCreditBalance();
   const noCredits = credits === 0;
+  const spend = useSpendCredit();
+  const { user } = useAuth();
 
-  function handleGenerate(value = prompt) {
+  async function handleGenerate(value = prompt) {
     if (!value.trim() || loading) return;
-    if (!spendCredit()) return;
+    if (!(await spend())) return;
     setLoading(true);
     setProject(null);
     setStep(0);
@@ -67,8 +69,10 @@ function Home() {
       window.setTimeout(() => setStep(i), i * 650);
     });
     window.setTimeout(() => {
-      setProject(generateProject(value));
+      const generated = generateProject(value);
+      setProject(generated);
       setLoading(false);
+      if (user) void saveProject(user.id, value, generated).catch(() => {});
     }, STEPS.length * 650 + 400);
   }
 
