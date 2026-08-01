@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { readPlan, setPlan, type Plan } from "@/lib/credits";
+import { useAuth } from "@/lib/auth";
 
 const tiers = [
   {
@@ -102,7 +103,11 @@ function Pricing() {
             <button
               type="button"
               onClick={() => {
-                setPlan(t.plan);
+                if (user) {
+                  void updatePlan(t.plan);
+                } else {
+                  setPlan(t.plan);
+                }
                 setCurrent(t.plan);
               }}
               className={`mt-7 w-full rounded-xl py-3 text-sm font-semibold ${
