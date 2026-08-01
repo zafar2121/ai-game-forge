@@ -1,20 +1,30 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Check } from "lucide-react";
+import { useEffect, useState } from "react";
+import { readPlan, setPlan, type Plan } from "@/lib/credits";
 
 const tiers = [
   {
     name: "Free",
+    plan: "free" as Plan,
     price: "$0",
-    period: "/mo",
-    features: ["3 generations per month", "Core Lua scripts", "Folder structure export"],
+    period: "/month",
+    features: [
+      "3 Credits per day",
+      "3 generations per day",
+      "Core Lua scripts",
+      "Folder structure export",
+    ],
     featured: false,
   },
   {
     name: "Pro",
-    price: "$19",
-    period: "/mo",
+    plan: "pro" as Plan,
+    price: "$10",
+    period: "/month",
     features: [
-      "Unlimited generations",
+      "10 Credits per day",
+      "Faster generation",
       "Full script suite + NPC systems",
       "Economy & monetization plans",
       "Downloadable project bundle",
@@ -23,9 +33,16 @@ const tiers = [
   },
   {
     name: "Studio",
-    price: "$79",
-    period: "/mo",
-    features: ["Everything in Pro", "Team workspace", "Custom template library", "Priority generation"],
+    plan: "studio" as Plan,
+    price: "$70",
+    period: "/month",
+    features: [
+      "Unlimited Credits",
+      "Everything in Pro",
+      "Team workspace",
+      "Custom template library",
+      "Priority generation",
+    ],
     featured: false,
   },
 ];
@@ -49,6 +66,12 @@ export const Route = createFileRoute("/pricing")({
 });
 
 function Pricing() {
+  const [current, setCurrent] = useState<Plan>("free");
+
+  useEffect(() => {
+    setCurrent(readPlan());
+  }, []);
+
   return (
     <main className="mx-auto max-w-5xl px-5 py-20">
       <div className="text-center">
@@ -76,13 +99,17 @@ function Pricing() {
             </ul>
             <button
               type="button"
+              onClick={() => {
+                setPlan(t.plan);
+                setCurrent(t.plan);
+              }}
               className={`mt-7 w-full rounded-xl py-3 text-sm font-semibold ${
                 t.featured
                   ? "btn-primary"
                   : "border border-border text-foreground transition-colors hover:bg-secondary"
               }`}
             >
-              {t.featured ? "Get Pro" : "Choose plan"}
+              {current === t.plan ? "Current plan" : t.featured ? "Get Pro" : "Choose plan"}
             </button>
           </div>
         ))}
