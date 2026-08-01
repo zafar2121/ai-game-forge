@@ -44,8 +44,11 @@ export function setPlan(plan: Plan) {
   }
   const max = PLAN_CREDITS[plan];
   const state = read();
-  // Cap (or top up) the balance to the new plan's daily allowance.
-  write({ credits: Math.min(state.credits, max), lastReset: state.lastReset });
+  // Align the balance with the new plan's daily allowance.
+  write({
+    credits: Number.isFinite(max) ? Math.max(Math.min(state.credits, max), max) : max,
+    lastReset: state.lastReset,
+  });
 }
 
 function maxCredits() {
