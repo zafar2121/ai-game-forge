@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Loader2, Sparkles, Wand2 } from "lucide-react";
 import { ProjectPanel } from "@/components/project-panel";
 import { generateProject, type GeneratedProject } from "@/lib/generate-project";
-import { spendCredit, useCredits } from "@/lib/credits";
+import { useAuth, useCreditBalance, useSpendCredit } from "@/lib/auth";
+import { saveProject } from "@/lib/projects";
 
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -52,12 +53,14 @@ function Home() {
   const [project, setProject] = useState<GeneratedProject | null>(null);
   const [highlight, setHighlight] = useState(false);
   const generatorRef = useRef<HTMLDivElement>(null);
-  const credits = useCredits();
+  const credits = useCreditBalance();
   const noCredits = credits === 0;
+  const spend = useSpendCredit();
+  const { user } = useAuth();
 
-  function handleGenerate(value = prompt) {
+  async function handleGenerate(value = prompt) {
     if (!value.trim() || loading) return;
-    if (!spendCredit()) return;
+    if (!(await spend())) return;
     setLoading(true);
     setProject(null);
     setStep(0);
@@ -66,8 +69,10 @@ function Home() {
       window.setTimeout(() => setStep(i), i * 650);
     });
     window.setTimeout(() => {
-      setProject(generateProject(value));
+      const generated = generateProject(value);
+      setProject(generated);
       setLoading(false);
+      if (user) void saveProject(user.id, value, generated).catch(() => {});
     }, STEPS.length * 650 + 400);
   }
 

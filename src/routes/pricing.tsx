@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { readPlan, setPlan, type Plan } from "@/lib/credits";
+import { useAuth } from "@/lib/auth";
 
 const tiers = [
   {
@@ -66,11 +67,13 @@ export const Route = createFileRoute("/pricing")({
 });
 
 function Pricing() {
+  const { user, profile, updatePlan } = useAuth();
   const [current, setCurrent] = useState<Plan>("free");
 
   useEffect(() => {
-    setCurrent(readPlan());
-  }, []);
+    setCurrent(user ? (profile?.plan ?? "free") : readPlan());
+  }, [user, profile?.plan]);
+
 
   return (
     <main className="mx-auto max-w-5xl px-5 py-20">
@@ -100,7 +103,11 @@ function Pricing() {
             <button
               type="button"
               onClick={() => {
-                setPlan(t.plan);
+                if (user) {
+                  void updatePlan(t.plan);
+                } else {
+                  setPlan(t.plan);
+                }
                 setCurrent(t.plan);
               }}
               className={`mt-7 w-full rounded-xl py-3 text-sm font-semibold ${
