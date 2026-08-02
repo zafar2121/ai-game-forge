@@ -78,11 +78,6 @@ function Home() {
     void runGeneration(value);
   }
 
-  async function handleGenerate(value = prompt) {
-    if (!value.trim() || loading) return;
-    void runGeneration(value);
-  }
-
   function runGeneration(value: string) {
     setLoading(true);
     setProject(null);
