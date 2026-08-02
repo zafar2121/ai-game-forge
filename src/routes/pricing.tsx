@@ -2,51 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { readPlan, setPlan, type Plan } from "@/lib/credits";
+import { tiers } from "@/lib/plans";
 import { useAuth } from "@/lib/auth";
 
-const tiers = [
-  {
-    name: "Free",
-    plan: "free" as Plan,
-    price: "$0",
-    period: "/month",
-    features: [
-      "3 Credits per day",
-      "3 generations per day",
-      "Core Lua scripts",
-      "Folder structure export",
-    ],
-    featured: false,
-  },
-  {
-    name: "Pro",
-    plan: "pro" as Plan,
-    price: "$10",
-    period: "/month",
-    features: [
-      "10 Credits per day",
-      "Faster generation",
-      "Full script suite + NPC systems",
-      "Economy & monetization plans",
-      "Downloadable project bundle",
-    ],
-    featured: true,
-  },
-  {
-    name: "Studio",
-    plan: "studio" as Plan,
-    price: "$70",
-    period: "/month",
-    features: [
-      "Unlimited Credits",
-      "Everything in Pro",
-      "Team workspace",
-      "Custom template library",
-      "Priority generation",
-    ],
-    featured: false,
-  },
-];
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({

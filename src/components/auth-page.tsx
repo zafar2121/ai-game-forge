@@ -2,7 +2,6 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/lib/auth";
 
 export type AuthMode = "login" | "signup" | "forgot";
@@ -24,21 +23,6 @@ export function AuthPage({ defaultMode }: { defaultMode: AuthMode }) {
   useEffect(() => {
     if (!loading && user) navigate({ to: "/", replace: true });
   }, [loading, user, navigate]);
-
-  async function handleGoogle() {
-    setError(null);
-    setBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      setError(result.error.message ?? "Google sign-in failed.");
-      setBusy(false);
-      return;
-    }
-    if (result.redirected) return;
-    navigate({ to: "/", replace: true });
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -95,24 +79,6 @@ export function AuthPage({ defaultMode }: { defaultMode: AuthMode }) {
       </div>
 
       <div className="panel mt-10 p-7">
-        {mode !== "forgot" && (
-          <>
-            <button
-              type="button"
-              onClick={handleGoogle}
-              disabled={busy}
-              className="w-full rounded-xl border border-border py-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
-            >
-              Continue with Google
-            </button>
-            <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
-              <span className="h-px flex-1 bg-border" />
-              or
-              <span className="h-px flex-1 bg-border" />
-            </div>
-          </>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-3">
           <input
             type="email"
