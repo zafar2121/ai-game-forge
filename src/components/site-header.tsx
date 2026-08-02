@@ -79,13 +79,13 @@ export function SiteHeader() {
           ) : (
             <>
               <Link
-                to="/auth"
+                to="/login"
                 className="rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 Log In
               </Link>
               <Link
-                to="/auth"
+                to="/signup"
                 className="rounded-lg border border-border px-3 py-2 text-sm text-foreground transition-colors hover:bg-secondary"
               >
                 Sign Up
@@ -142,13 +142,22 @@ export function SiteHeader() {
               </button>
             </>
           ) : (
-            <Link
-              to="/auth"
-              onClick={() => setOpen(false)}
-              className="block rounded-lg px-2 py-2.5 text-sm text-muted-foreground hover:text-foreground"
-            >
-              Log In / Sign Up
-            </Link>
+            <>
+              <Link
+                to="/login"
+                onClick={() => setOpen(false)}
+                className="block rounded-lg px-2 py-2.5 text-sm text-muted-foreground hover:text-foreground"
+              >
+                Log In
+              </Link>
+              <Link
+                to="/signup"
+                onClick={() => setOpen(false)}
+                className="block rounded-lg px-2 py-2.5 text-sm text-muted-foreground hover:text-foreground"
+              >
+                Sign Up
+              </Link>
+            </>
           )}
         </div>
       )}
