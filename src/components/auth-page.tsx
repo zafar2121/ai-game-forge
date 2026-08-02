@@ -1,40 +1,25 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/lib/auth";
 
-export const Route = createFileRoute("/auth")({
-  head: () => ({
-    meta: [
-      { title: "Sign in — Roblox AI Builder" },
-      {
-        name: "description",
-        content:
-          "Log in or create a free Roblox AI Builder account to save your generated projects and credits.",
-      },
-      { property: "og:title", content: "Sign in — Roblox AI Builder" },
-      {
-        property: "og:description",
-        content: "Access your Roblox AI Builder account, credits and saved projects.",
-      },
-    ],
-  }),
-  component: AuthPage,
-});
+export type AuthMode = "login" | "signup" | "forgot";
 
-type Mode = "login" | "signup" | "forgot";
-
-function AuthPage() {
+export function AuthPage({ defaultMode }: { defaultMode: AuthMode }) {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
-  const [mode, setMode] = useState<Mode>("login");
+  const [mode, setMode] = useState<AuthMode>(defaultMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMode(defaultMode);
+  }, [defaultMode]);
 
   useEffect(() => {
     if (!loading && user) navigate({ to: "/", replace: true });
@@ -167,14 +152,18 @@ function AuthPage() {
               <button type="button" onClick={() => setMode("forgot")} className="hover:text-foreground">
                 Forgot password?
               </button>
-              <button type="button" onClick={() => setMode("signup")} className="hover:text-foreground">
+              <Link to="/signup" className="hover:text-foreground">
                 Need an account? Sign up
-              </button>
+              </Link>
             </>
+          ) : mode === "signup" ? (
+            <Link to="/login" className="hover:text-foreground">
+              Already have an account? Log in
+            </Link>
           ) : (
-            <button type="button" onClick={() => setMode("login")} className="hover:text-foreground">
+            <Link to="/login" className="hover:text-foreground">
               Back to log in
-            </button>
+            </Link>
           )}
         </div>
       </div>
