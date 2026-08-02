@@ -4,6 +4,7 @@ import { ArrowRight, Loader2, Sparkles, Wand2 } from "lucide-react";
 import { ProjectPanel } from "@/components/project-panel";
 import { generateProject, type GeneratedProject } from "@/lib/generate-project";
 import { useAuth, useCreditBalance, useSpendCredit } from "@/lib/auth";
+import { CreditGateModal, SignInRequiredModal } from "@/components/generate-gate-modals";
 import { saveProject } from "@/lib/projects";
 
 export const Route = createFileRoute("/")({
@@ -54,13 +55,35 @@ function Home() {
   const [highlight, setHighlight] = useState(false);
   const generatorRef = useRef<HTMLDivElement>(null);
   const credits = useCreditBalance();
-  const noCredits = credits === 0;
   const spend = useSpendCredit();
-  const { user } = useAuth();
+  const { user, profile, updatePlan } = useAuth();
+  const [signInOpen, setSignInOpen] = useState(false);
+  const [creditsOpen, setCreditsOpen] = useState(false);
+  const pendingPrompt = useRef<string>("");
+
+  function requestGenerate(value = prompt) {
+    if (!value.trim() || loading) return;
+    pendingPrompt.current = value;
+    if (!user) {
+      setSignInOpen(true);
+      return;
+    }
+    setCreditsOpen(true);
+  }
+
+  async function confirmGenerate() {
+    const value = pendingPrompt.current || prompt;
+    if (!(await spend())) return;
+    setCreditsOpen(false);
+    void runGeneration(value);
+  }
 
   async function handleGenerate(value = prompt) {
     if (!value.trim() || loading) return;
-    if (!(await spend())) return;
+    void runGeneration(value);
+  }
+
+  function runGeneration(value: string) {
     setLoading(true);
     setProject(null);
     setStep(0);
@@ -83,7 +106,7 @@ function Home() {
     generatorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     setHighlight(true);
     const t = window.setTimeout(() => setHighlight(false), 2600);
-    if (search.go) handleGenerate(search.prompt);
+    if (search.go) requestGenerate(search.prompt);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search.prompt, search.go]);
@@ -93,6 +116,18 @@ function Home() {
     <div className="relative">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[720px] hero-glow" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[720px] grid-lines opacity-40" />
+
+      <SignInRequiredModal open={signInOpen} onOpenChange={setSignInOpen} />
+      <CreditGateModal
+        open={creditsOpen}
+        onOpenChange={setCreditsOpen}
+        credits={credits}
+        currentPlan={profile?.plan ?? "free"}
+        onUseCredit={() => void confirmGenerate()}
+        onChoosePlan={async (plan) => {
+          await updatePlan(plan);
+        }}
+      />
 
       <main className="relative mx-auto max-w-6xl px-5 pb-24 pt-20 sm:pt-28">
         <div className="mx-auto max-w-3xl text-center">
@@ -124,8 +159,8 @@ function Home() {
               </p>
               <button
                 type="button"
-                onClick={() => handleGenerate()}
-                disabled={!prompt.trim() || loading || noCredits}
+                onClick={() => requestGenerate()}
+                disabled={!prompt.trim() || loading}
                 className={`btn-primary inline-flex items-center justify-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold ${
                   highlight ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""
                 }`}
@@ -139,9 +174,9 @@ function Home() {
                 Generate Game
               </button>
             </div>
-            {noCredits && (
+            {user && credits === 0 && (
               <p className="border-t border-border/70 px-3 pb-3 pt-3 text-sm text-muted-foreground">
-                You have no credits left. Come back tomorrow to receive 3 free credits.
+                You have no credits left. Come back tomorrow to receive 1 free credit.
               </p>
             )}
           </div>

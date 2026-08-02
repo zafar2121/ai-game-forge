@@ -9,7 +9,7 @@ import {
 } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { PLAN_CREDITS, useCredits, type Plan } from "@/lib/credits";
+import { PLAN_CREDITS, type Plan } from "@/lib/credits";
 
 export type Profile = {
   user_id: string;
@@ -178,10 +178,9 @@ export function useAuth() {
   return ctx;
 }
 
-/** Credit balance for the current visitor: profile-backed when signed in, local otherwise. */
+/** Credit balance for the current visitor: profile-backed when signed in, 0 for guests. */
 export function useCreditBalance(): number | null {
   const { user, profile } = useAuth();
-  const local = useCredits();
   if (!user) return 0;
   if (!profile) return null;
   return profile.plan === "studio" ? Infinity : profile.credits;
