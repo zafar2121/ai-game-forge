@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 export type Plan = "free" | "pro" | "studio";
 
 export const PLAN_CREDITS: Record<Plan, number> = {
-  free: 3,
+  free: 1,
   pro: 10,
   studio: Infinity,
 };
