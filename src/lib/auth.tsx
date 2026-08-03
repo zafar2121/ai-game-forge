@@ -9,6 +9,7 @@ import {
 } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { claimStarterCredit } from "@/lib/anti-abuse.functions";
 import { PLAN_CREDITS, type Plan } from "@/lib/credits";
 
 export type Profile = {
@@ -18,12 +19,15 @@ export type Profile = {
   credits: number;
   last_credit_reset: string;
   created_at: string;
+  email_verified?: boolean;
+  starter_credit_granted?: boolean;
 };
 
 type AuthContextValue = {
   session: Session | null;
   user: User | null;
   profile: Profile | null;
+  emailVerified: boolean;
   loading: boolean;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -61,9 +65,10 @@ async function loadProfile(user: User): Promise<Profile | null> {
 
   if (!profile) return null;
 
-  // Daily credit reset every 24 hours.
+  // Daily credit reset every 24 hours — only for verified accounts.
+  const verified = Boolean(user.email_confirmed_at ?? user.confirmed_at);
   const last = new Date(profile.last_credit_reset).getTime();
-  if (Number.isFinite(last) && Date.now() - last >= DAY_MS) {
+  if (verified && Number.isFinite(last) && Date.now() - last >= DAY_MS) {
     const { data: reset } = await supabase
       .from("profiles")
       .update({
@@ -110,13 +115,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!user) return;
     let active = true;
-    loadProfile(user).then((p) => {
+    (async () => {
+      // The starter credit is only granted server-side after email verification.
+      if (user.email_confirmed_at) {
+        await claimStarterCredit().catch(() => undefined);
+      }
+      const p = await loadProfile(user);
       if (active) setProfile(p);
-    });
+    })();
     return () => {
       active = false;
     };
-  }, [user?.id]);
+  }, [user?.id, user?.email_confirmed_at]);
+
 
   const refreshProfile = useCallback(async () => {
     if (!user) return;
@@ -164,9 +175,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [profile],
   );
 
+  const emailVerified = Boolean(user?.email_confirmed_at ?? user?.confirmed_at);
+
   const value = useMemo(
-    () => ({ session, user, profile, loading, refreshProfile, signOut, spendProfileCredit, updatePlan }),
-    [session, user, profile, loading, refreshProfile, signOut, spendProfileCredit, updatePlan],
+    () => ({ session, user, profile, emailVerified, loading, refreshProfile, signOut, spendProfileCredit, updatePlan }),
+    [session, user, profile, emailVerified, loading, refreshProfile, signOut, spendProfileCredit, updatePlan],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -180,8 +193,9 @@ export function useAuth() {
 
 /** Credit balance for the current visitor: profile-backed when signed in, 0 for guests. */
 export function useCreditBalance(): number | null {
-  const { user, profile } = useAuth();
+  const { user, profile, emailVerified } = useAuth();
   if (!user) return 0;
+  if (!emailVerified) return 0;
   if (!profile) return null;
   return profile.plan === "studio" ? Infinity : profile.credits;
 }

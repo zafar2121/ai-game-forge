@@ -19,24 +19,30 @@ export type Database = {
           created_at: string
           credits: number
           email: string | null
+          email_verified: boolean
           last_credit_reset: string
           plan: string
+          starter_credit_granted: boolean
           user_id: string
         }
         Insert: {
           created_at?: string
           credits?: number
           email?: string | null
+          email_verified?: boolean
           last_credit_reset?: string
           plan?: string
+          starter_credit_granted?: boolean
           user_id: string
         }
         Update: {
           created_at?: string
           credits?: number
           email?: string | null
+          email_verified?: boolean
           last_credit_reset?: string
           plan?: string
+          starter_credit_granted?: boolean
           user_id?: string
         }
         Relationships: []
@@ -65,6 +71,24 @@ export type Database = {
           prompt?: string
           title?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      signup_attempts: {
+        Row: {
+          created_at: string
+          id: string
+          ip_hash: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_hash: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_hash?: string
         }
         Relationships: []
       }

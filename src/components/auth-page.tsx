@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { guardSignup } from "@/lib/anti-abuse.functions";
+import { RegistrationLimitModal } from "@/components/generate-gate-modals";
 
 export type AuthMode = "login" | "signup" | "forgot";
 
@@ -13,6 +15,7 @@ export function AuthPage({ defaultMode }: { defaultMode: AuthMode }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [limitOpen, setLimitOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -41,6 +44,17 @@ export function AuthPage({ defaultMode }: { defaultMode: AuthMode }) {
     }
 
     if (mode === "signup") {
+      const guard = await guardSignup().catch(() => null);
+      if (!guard) {
+        setBusy(false);
+        setError("Could not verify registration limit. Please try again.");
+        return;
+      }
+      if (!guard.allowed) {
+        setBusy(false);
+        setLimitOpen(true);
+        return;
+      }
       const { data, error: err } = await supabase.auth.signUp({
         email,
         password,
@@ -52,7 +66,7 @@ export function AuthPage({ defaultMode }: { defaultMode: AuthMode }) {
         return;
       }
       if (!data.session) {
-        setNotice("Account created. Check your email to confirm your address, then log in.");
+        setNotice("Account created. Verify your email to unlock your free credit, then log in.");
         return;
       }
       navigate({ to: "/", replace: true });
@@ -67,6 +81,7 @@ export function AuthPage({ defaultMode }: { defaultMode: AuthMode }) {
 
   return (
     <main className="mx-auto max-w-md px-5 py-20">
+      <RegistrationLimitModal open={limitOpen} onOpenChange={setLimitOpen} />
       <div className="text-center">
         <h1 className="text-4xl font-semibold">
           {mode === "signup" ? "Sign up" : mode === "forgot" ? "Reset password" : "Log in"}
