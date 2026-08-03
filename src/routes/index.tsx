@@ -4,8 +4,13 @@ import { ArrowRight, Loader2, Sparkles, Wand2 } from "lucide-react";
 import { ProjectPanel } from "@/components/project-panel";
 import { generateProject, type GeneratedProject } from "@/lib/generate-project";
 import { useAuth, useCreditBalance, useSpendCredit } from "@/lib/auth";
-import { CreditGateModal, SignInRequiredModal } from "@/components/generate-gate-modals";
+import {
+  CreditGateModal,
+  EmailVerificationModal,
+  SignInRequiredModal,
+} from "@/components/generate-gate-modals";
 import { saveProject } from "@/lib/projects";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -56,8 +61,9 @@ function Home() {
   const generatorRef = useRef<HTMLDivElement>(null);
   const credits = useCreditBalance();
   const spend = useSpendCredit();
-  const { user, profile, updatePlan } = useAuth();
+  const { user, profile, emailVerified, updatePlan } = useAuth();
   const [signInOpen, setSignInOpen] = useState(false);
+  const [verifyOpen, setVerifyOpen] = useState(false);
   const [creditsOpen, setCreditsOpen] = useState(false);
   const pendingPrompt = useRef<string>("");
 
@@ -66,6 +72,10 @@ function Home() {
     pendingPrompt.current = value;
     if (!user) {
       setSignInOpen(true);
+      return;
+    }
+    if (!emailVerified) {
+      setVerifyOpen(true);
       return;
     }
     setCreditsOpen(true);
@@ -113,6 +123,19 @@ function Home() {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[720px] grid-lines opacity-40" />
 
       <SignInRequiredModal open={signInOpen} onOpenChange={setSignInOpen} />
+      <EmailVerificationModal
+        open={verifyOpen}
+        onOpenChange={setVerifyOpen}
+        email={user?.email ?? null}
+        onResend={async () => {
+          if (!user?.email) return;
+          await supabase.auth.resend({
+            type: "signup",
+            email: user.email,
+            options: { emailRedirectTo: window.location.origin },
+          });
+        }}
+      />
       <CreditGateModal
         open={creditsOpen}
         onOpenChange={setCreditsOpen}
@@ -169,7 +192,12 @@ function Home() {
                 Generate Game
               </button>
             </div>
-            {user && credits === 0 && (
+            {user && !emailVerified && (
+              <p className="border-t border-border/70 px-3 pb-3 pt-3 text-sm text-muted-foreground">
+                Verify your email to receive your free credit and start generating.
+              </p>
+            )}
+            {user && emailVerified && credits === 0 && (
               <p className="border-t border-border/70 px-3 pb-3 pt-3 text-sm text-muted-foreground">
                 You have no credits left. Come back tomorrow to receive 1 free credit.
               </p>

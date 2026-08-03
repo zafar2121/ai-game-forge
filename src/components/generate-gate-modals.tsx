@@ -165,3 +165,95 @@ export function CreditGateModal({
     </Dialog>
   );
 }
+
+export function RegistrationLimitModal({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="panel max-w-md border-border bg-background/95 backdrop-blur-xl">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">
+            Registration Limit Reached please wait 24 hours to create new account
+          </DialogTitle>
+          <DialogDescription className="text-muted-foreground">
+            You have reached the maximum of 2 account registrations today.
+            <br />
+            Please come back in 24 hours and try again.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="mt-4">
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="btn-primary inline-flex w-full items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold sm:w-auto"
+          >
+            OK
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function EmailVerificationModal({
+  open,
+  onOpenChange,
+  email,
+  onResend,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  email?: string | null;
+  onResend?: () => Promise<void> | void;
+}) {
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="panel max-w-md border-border bg-background/95 backdrop-blur-xl">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">Verify your email</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
+            Confirm your email address{email ? ` (${email})` : ""} to receive your free starter
+            credit and start generating Roblox games. Check your inbox for the verification link.
+          </DialogDescription>
+        </DialogHeader>
+        {sent && <p className="text-sm text-muted-foreground">Verification email sent.</p>}
+        <DialogFooter className="mt-4 flex-col gap-2 sm:flex-row sm:justify-end">
+          {onResend && (
+            <button
+              type="button"
+              disabled={sending}
+              onClick={async () => {
+                setSending(true);
+                try {
+                  await onResend();
+                  setSent(true);
+                } finally {
+                  setSending(false);
+                }
+              }}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary disabled:opacity-60 sm:w-auto"
+            >
+              {sending && <Loader2 className="size-4 animate-spin" />}
+              Resend email
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="btn-primary inline-flex w-full items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold sm:w-auto"
+          >
+            OK
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
