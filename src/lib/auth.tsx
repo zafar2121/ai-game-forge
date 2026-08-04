@@ -66,10 +66,16 @@ async function loadProfile(user: User): Promise<Profile | null> {
 
   if (!profile) return null;
 
-  // Daily credit reset every 24 hours — only for verified accounts.
+  // Paid plans receive their credit allowance every 24 hours.
+  // Free users never receive automatic credits — they earn them from Daily Tasks only.
   const verified = Boolean(user.email_confirmed_at ?? user.confirmed_at);
   const last = new Date(profile.last_credit_reset).getTime();
-  if (verified && Number.isFinite(last) && Date.now() - last >= DAY_MS) {
+  if (
+    verified &&
+    profile.plan !== "free" &&
+    Number.isFinite(last) &&
+    Date.now() - last >= DAY_MS
+  ) {
     const { data: reset } = await supabase
       .from("profiles")
       .update({
