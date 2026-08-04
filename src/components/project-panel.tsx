@@ -7,6 +7,7 @@ import {
   FolderTree,
   Gem,
   Gamepad2,
+  Share2,
   Users,
   FileCode2,
   Check,
@@ -15,6 +16,7 @@ import {
 } from "lucide-react";
 import type { GeneratedProject } from "@/lib/generate-project";
 import { buildProjectZip, downloadBlob } from "@/lib/build-project-zip";
+import { ShareDialog } from "@/components/share-dialog";
 
 
 function Section({
