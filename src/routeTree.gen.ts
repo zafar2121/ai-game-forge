@@ -17,6 +17,7 @@ import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as TasksRouteImport } from './routes/tasks'
 import { Route as TemplatesRouteImport } from './routes/templates'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedProjectsRouteImport } from './routes/_authenticated/projects'
@@ -60,6 +61,11 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TasksRoute = TasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TemplatesRoute = TemplatesRouteImport.update({
   id: '/templates',
   path: '/templates',
@@ -84,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/tasks': typeof TasksRoute
   '/templates': typeof TemplatesRoute
   '/terms': typeof TermsRoute
   '/projects': typeof AuthenticatedProjectsRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/tasks': typeof TasksRoute
   '/templates': typeof TemplatesRoute
   '/terms': typeof TermsRoute
   '/projects': typeof AuthenticatedProjectsRoute
@@ -110,6 +118,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/tasks': typeof TasksRoute
   '/templates': typeof TemplatesRoute
   '/terms': typeof TermsRoute
   '/_authenticated/projects': typeof AuthenticatedProjectsRoute
@@ -124,6 +133,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/reset-password'
     | '/signup'
+    | '/tasks'
     | '/templates'
     | '/terms'
     | '/projects'
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/reset-password'
     | '/signup'
+    | '/tasks'
     | '/templates'
     | '/terms'
     | '/projects'
@@ -149,6 +160,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/reset-password'
     | '/signup'
+    | '/tasks'
     | '/templates'
     | '/terms'
     | '/_authenticated/projects'
@@ -163,6 +175,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  TasksRoute: typeof TasksRoute
   TemplatesRoute: typeof TemplatesRoute
   TermsRoute: typeof TermsRoute
 }
@@ -225,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tasks': {
+      id: '/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof TasksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/templates': {
       id: '/templates'
       path: '/templates'
@@ -269,6 +289,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  TasksRoute: TasksRoute,
   TemplatesRoute: TemplatesRoute,
   TermsRoute: TermsRoute,
 }

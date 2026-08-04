@@ -32,6 +32,7 @@ type AuthContextValue = {
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
   spendProfileCredit: () => Promise<boolean>;
+  addCredits: (amount: number) => Promise<void>;
   updatePlan: (plan: Plan) => Promise<void>;
 };
 
