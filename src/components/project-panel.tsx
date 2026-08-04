@@ -145,6 +145,7 @@ export function ProjectPanel({
               onClick={() => {
                 navigator.clipboard?.writeText(script.code);
                 setCopied(true);
+                onCopiedPrompt?.();
               }}
               className="absolute right-2 top-2 rounded-md border border-border bg-surface-2 p-1.5 text-muted-foreground transition-colors hover:text-foreground"
               aria-label="Copy script"
