@@ -25,6 +25,7 @@ export const Route = createFileRoute("/_authenticated/projects")({
 });
 
 function ProjectsPage() {
+  const { user, profile } = useAuth();
   const [projects, setProjects] = useState<SavedProject[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
