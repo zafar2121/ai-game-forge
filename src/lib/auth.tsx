@@ -32,6 +32,7 @@ type AuthContextValue = {
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
   spendProfileCredit: () => Promise<boolean>;
+  addCredits: (amount: number) => Promise<void>;
   updatePlan: (plan: Plan) => Promise<void>;
 };
 
@@ -65,10 +66,16 @@ async function loadProfile(user: User): Promise<Profile | null> {
 
   if (!profile) return null;
 
-  // Daily credit reset every 24 hours — only for verified accounts.
+  // Paid plans receive their credit allowance every 24 hours.
+  // Free users never receive automatic credits — they earn them from Daily Tasks only.
   const verified = Boolean(user.email_confirmed_at ?? user.confirmed_at);
   const last = new Date(profile.last_credit_reset).getTime();
-  if (verified && Number.isFinite(last) && Date.now() - last >= DAY_MS) {
+  if (
+    verified &&
+    profile.plan !== "free" &&
+    Number.isFinite(last) &&
+    Date.now() - last >= DAY_MS
+  ) {
     const { data: reset } = await supabase
       .from("profiles")
       .update({
@@ -142,9 +149,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const spendProfileCredit = useCallback(async () => {
     if (!profile) return false;
-    if (profile.plan === "studio") return true;
-    if (profile.credits <= 0) return false;
-    const next = profile.credits - 1;
+    if (profile.credits < 1) return false;
+    const next = Math.round((profile.credits - 1) * 100) / 100;
     setProfile({ ...profile, credits: next });
     const { error } = await supabase
       .from("profiles")
@@ -156,6 +162,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     return true;
   }, [profile]);
+
+  const addCredits = useCallback(
+    async (amount: number) => {
+      if (!profile || amount <= 0) return;
+      const next = Math.round((profile.credits + amount) * 100) / 100;
+      const { data } = await supabase
+        .from("profiles")
+        .update({ credits: next })
+        .eq("user_id", profile.user_id)
+        .select("*")
+        .maybeSingle();
+      setProfile((data as Profile | null) ?? { ...profile, credits: next });
+    },
+    [profile],
+  );
 
   const updatePlan = useCallback(
     async (plan: Plan) => {
@@ -178,8 +199,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const emailVerified = Boolean(user?.email_confirmed_at ?? user?.confirmed_at);
 
   const value = useMemo(
-    () => ({ session, user, profile, emailVerified, loading, refreshProfile, signOut, spendProfileCredit, updatePlan }),
-    [session, user, profile, emailVerified, loading, refreshProfile, signOut, spendProfileCredit, updatePlan],
+    () => ({ session, user, profile, emailVerified, loading, refreshProfile, signOut, spendProfileCredit, addCredits, updatePlan }),
+    [session, user, profile, emailVerified, loading, refreshProfile, signOut, spendProfileCredit, addCredits, updatePlan],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -197,7 +218,7 @@ export function useCreditBalance(): number | null {
   if (!user) return 0;
   if (!emailVerified) return 0;
   if (!profile) return null;
-  return profile.plan === "studio" ? Infinity : profile.credits;
+  return profile.credits;
 }
 
 /** Spend one credit through the right store for the current visitor. */

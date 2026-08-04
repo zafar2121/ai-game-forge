@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { Loader2, Trash2 } from "lucide-react";
 import { ProjectPanel } from "@/components/project-panel";
 import { deleteProject, listProjects, type SavedProject } from "@/lib/projects";
+import { trackTaskEvent } from "@/lib/daily-tasks";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/_authenticated/projects")({
   head: () => ({
@@ -23,6 +25,7 @@ export const Route = createFileRoute("/_authenticated/projects")({
 });
 
 function ProjectsPage() {
+  const { user, profile } = useAuth();
   const [projects, setProjects] = useState<SavedProject[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -98,7 +101,15 @@ function ProjectsPage() {
 
       {open && (
         <div className="mt-14">
-          <ProjectPanel project={open.data} />
+          <ProjectPanel
+            project={open.data}
+            shareId={open.share_id ?? null}
+            onDownloaded={() => void trackTaskEvent(user?.id, profile?.plan ?? "free", "download")}
+            onShared={() => void trackTaskEvent(user?.id, profile?.plan ?? "free", "share")}
+            onCopiedPrompt={() =>
+              void trackTaskEvent(user?.id, profile?.plan ?? "free", "copy_prompt")
+            }
+          />
         </div>
       )}
     </main>

@@ -7,6 +7,7 @@ import {
   FolderTree,
   Gem,
   Gamepad2,
+  Share2,
   Users,
   FileCode2,
   Check,
@@ -15,6 +16,7 @@ import {
 } from "lucide-react";
 import type { GeneratedProject } from "@/lib/generate-project";
 import { buildProjectZip, downloadBlob } from "@/lib/build-project-zip";
+import { ShareDialog } from "@/components/share-dialog";
 
 
 function Section({
@@ -39,12 +41,42 @@ function Section({
   );
 }
 
-export function ProjectPanel({ project }: { project: GeneratedProject }) {
+export function ProjectPanel({
+  project,
+  shareId,
+  onDownloaded,
+  onShared,
+  onCopiedPrompt,
+}: {
+  project: GeneratedProject;
+  shareId?: string | null;
+  onDownloaded?: () => void;
+  onShared?: () => void;
+  onCopiedPrompt?: () => void;
+}) {
   const [active, setActive] = useState(0);
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const script = project.scripts[active];
+  const shareUrl =
+    shareId && typeof window !== "undefined" ? `${window.location.origin}/s/${shareId}` : null;
+
+  async function handleShare() {
+    if (!shareUrl) return;
+    onShared?.();
+    const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> };
+    if (nav.share && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+      try {
+        await nav.share({ title: project.title, text: "Made with ForgeBloxAI", url: shareUrl });
+        return;
+      } catch {
+        /* fall through to the desktop dialog */
+      }
+    }
+    setShareOpen(true);
+  }
 
   async function handleDownload() {
     if (downloading) return;
@@ -55,6 +87,7 @@ export function ProjectPanel({ project }: { project: GeneratedProject }) {
       const name =
         project.title.replace(/[^A-Za-z0-9]+/g, "_").replace(/^_|_$/g, "") || "RobloxProject";
       downloadBlob(blob, `${name}.zip`);
+      onDownloaded?.();
     } catch (e) {
       setError(
         e instanceof Error ? `Could not create the ZIP: ${e.message}` : "Could not create the ZIP.",
@@ -63,6 +96,7 @@ export function ProjectPanel({ project }: { project: GeneratedProject }) {
       setDownloading(false);
     }
   }
+
 
 
   return (
@@ -111,6 +145,7 @@ export function ProjectPanel({ project }: { project: GeneratedProject }) {
               onClick={() => {
                 navigator.clipboard?.writeText(script.code);
                 setCopied(true);
+                onCopiedPrompt?.();
               }}
               className="absolute right-2 top-2 rounded-md border border-border bg-surface-2 p-1.5 text-muted-foreground transition-colors hover:text-foreground"
               aria-label="Copy script"
@@ -187,6 +222,7 @@ export function ProjectPanel({ project }: { project: GeneratedProject }) {
             {error && <p className="mt-1 text-sm text-destructive">{error}</p>}
           </div>
         </div>
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
         <button
           type="button"
           onClick={handleDownload}
@@ -200,8 +236,27 @@ export function ProjectPanel({ project }: { project: GeneratedProject }) {
           )}
           {downloading ? "Preparing download..." : "Download Project"}
 
-        </button>
+          </button>
+          {shareUrl && (
+            <button
+              type="button"
+              onClick={() => void handleShare()}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border px-6 py-3 text-sm font-semibold transition-colors hover:bg-secondary sm:w-auto"
+            >
+              <Share2 className="size-4 text-primary" />
+              Share
+            </button>
+          )}
+        </div>
       </div>
+      {shareUrl && (
+        <ShareDialog
+          open={shareOpen}
+          onOpenChange={setShareOpen}
+          url={shareUrl}
+          title={project.title}
+        />
+      )}
     </div>
   );
 }

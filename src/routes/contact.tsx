@@ -4,10 +4,10 @@ import { Mail, MessageSquare } from "lucide-react";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact — Roblox AI Builder" },
-      { name: "description", content: "Get in touch with the Roblox AI Builder team." },
-      { property: "og:title", content: "Contact — Roblox AI Builder" },
-      { property: "og:description", content: "Get in touch with the Roblox AI Builder team." },
+      { title: "Contact — ForgeBloxAI" },
+      { name: "description", content: "Get in touch with the ForgeBloxAI team." },
+      { property: "og:title", content: "Contact — ForgeBloxAI" },
+      { property: "og:description", content: "Get in touch with the ForgeBloxAI team." },
     ],
   }),
   component: Contact,
@@ -24,13 +24,23 @@ function Contact() {
         <div className="panel p-6">
           <Mail className="size-5 text-primary" />
           <p className="mt-3 text-sm font-medium">Email</p>
-          <p className="mt-1 text-sm text-muted-foreground">hello@robloxaibuilder.app</p>
+          <a
+            href="mailto:forgebloxsupport@gmail.com"
+            className="mt-1 block text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            forgebloxsupport@gmail.com
+          </a>
         </div>
-        <div className="panel p-6">
+        <a
+          href="https://discord.gg/ZujbB8uMy"
+          target="_blank"
+          rel="noreferrer"
+          className="panel block p-6 transition-colors hover:border-primary/40"
+        >
           <MessageSquare className="size-5 text-primary" />
           <p className="mt-3 text-sm font-medium">Community</p>
-          <p className="mt-1 text-sm text-muted-foreground">Discord — creators & devs</p>
-        </div>
+          <p className="mt-1 text-sm text-muted-foreground">Join our official Discord community</p>
+        </a>
       </div>
       <form className="panel mt-6 space-y-4 p-7" onSubmit={(e) => e.preventDefault()}>
         <div>

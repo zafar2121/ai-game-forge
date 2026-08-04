@@ -3,12 +3,12 @@ import { useEffect, useState } from "react";
 export type Plan = "free" | "pro" | "studio";
 
 export const PLAN_CREDITS: Record<Plan, number> = {
-  free: 1,
+  free: 0,
   pro: 10,
-  studio: Infinity,
+  studio: 100,
 };
 
-/** Daily credit allowance for the current plan (Infinity for studio). */
+/** Daily credit allowance for the current plan. */
 export const MAX_CREDITS = PLAN_CREDITS.free;
 
 const KEY = "rab.credits";
@@ -127,5 +127,6 @@ export function useCredits() {
 
 export function formatCredits(credits: number | null) {
   if (credits === null) return "—";
-  return Number.isFinite(credits) ? `${credits}` : "∞";
+  if (!Number.isFinite(credits)) return "∞";
+  return Number.isInteger(credits) ? `${credits}` : credits.toFixed(2);
 }

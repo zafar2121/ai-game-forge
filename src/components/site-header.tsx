@@ -7,6 +7,7 @@ import { useAuth, useCreditBalance } from "@/lib/auth";
 const nav = [
   { to: "/", label: "Home" },
   { to: "/templates", label: "Templates" },
+  { to: "/tasks", label: "Daily Tasks" },
   { to: "/pricing", label: "Pricing" },
 ] as const;
 
