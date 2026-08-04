@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { Loader2, Trash2 } from "lucide-react";
 import { ProjectPanel } from "@/components/project-panel";
 import { deleteProject, listProjects, type SavedProject } from "@/lib/projects";
+import { trackTaskEvent } from "@/lib/daily-tasks";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/_authenticated/projects")({
   head: () => ({
