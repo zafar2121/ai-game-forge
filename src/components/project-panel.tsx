@@ -187,6 +187,7 @@ export function ProjectPanel({ project }: { project: GeneratedProject }) {
             {error && <p className="mt-1 text-sm text-destructive">{error}</p>}
           </div>
         </div>
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
         <button
           type="button"
           onClick={handleDownload}
