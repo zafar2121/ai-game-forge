@@ -57,15 +57,30 @@ function Home() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
   const [project, setProject] = useState<GeneratedProject | null>(null);
+  const [shareId, setShareId] = useState<string | null>(null);
   const [highlight, setHighlight] = useState(false);
   const generatorRef = useRef<HTMLDivElement>(null);
   const credits = useCreditBalance();
   const spend = useSpendCredit();
   const { user, profile, emailVerified, updatePlan } = useAuth();
+  const plan = profile?.plan ?? "free";
   const [signInOpen, setSignInOpen] = useState(false);
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [creditsOpen, setCreditsOpen] = useState(false);
   const pendingPrompt = useRef<string>("");
+
+  // Daily-task tracking: login streak + minutes spent on ForgeBloxAI.
+  useEffect(() => {
+    if (!user) return;
+    const streak = bumpLoginStreak();
+    void trackTaskEvent(user.id, plan, "login_streak", { amount: streak });
+    let minutes = 0;
+    const id = window.setInterval(() => {
+      minutes += 1;
+      void trackTaskEvent(user.id, plan, "active_minutes", { amount: minutes });
+    }, 60_000);
+    return () => window.clearInterval(id);
+  }, [user?.id, plan]);
 
   function requestGenerate(value = prompt) {
     if (!value.trim() || loading) return;
@@ -91,6 +106,7 @@ function Home() {
   function runGeneration(value: string) {
     setLoading(true);
     setProject(null);
+    setShareId(null);
     setStep(0);
 
     STEPS.forEach((_, i) => {
@@ -100,7 +116,14 @@ function Home() {
       const generated = generateProject(value);
       setProject(generated);
       setLoading(false);
-      if (user) void saveProject(user.id, value, generated).catch(() => {});
+      if (user) {
+        void saveProject(user.id, value, generated, user.email ?? null)
+          .then((id) => setShareId(id))
+          .catch(() => {});
+        void trackTaskEvent(user.id, plan, "generate");
+        void trackTaskEvent(user.id, plan, "long_prompt", { value: value.trim().length });
+        void trackTaskEvent(user.id, plan, "categories", { value: categoryOf(value) });
+      }
     }, STEPS.length * 650 + 400);
   }
 
@@ -115,6 +138,7 @@ function Home() {
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search.prompt, search.go]);
+
 
 
   return (
