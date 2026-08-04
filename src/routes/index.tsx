@@ -278,7 +278,13 @@ function Home() {
 
         {project && (
           <div className="mt-14">
-            <ProjectPanel project={project} />
+            <ProjectPanel
+              project={project}
+              shareId={shareId}
+              onDownloaded={() => void trackTaskEvent(user?.id, plan, "download")}
+              onShared={() => void trackTaskEvent(user?.id, plan, "share")}
+              onCopiedPrompt={() => void trackTaskEvent(user?.id, plan, "copy_prompt")}
+            />
           </div>
         )}
       </main>
