@@ -41,12 +41,42 @@ function Section({
   );
 }
 
-export function ProjectPanel({ project }: { project: GeneratedProject }) {
+export function ProjectPanel({
+  project,
+  shareId,
+  onDownloaded,
+  onShared,
+  onCopiedPrompt,
+}: {
+  project: GeneratedProject;
+  shareId?: string | null;
+  onDownloaded?: () => void;
+  onShared?: () => void;
+  onCopiedPrompt?: () => void;
+}) {
   const [active, setActive] = useState(0);
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const script = project.scripts[active];
+  const shareUrl =
+    shareId && typeof window !== "undefined" ? `${window.location.origin}/s/${shareId}` : null;
+
+  async function handleShare() {
+    if (!shareUrl) return;
+    onShared?.();
+    const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> };
+    if (nav.share && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+      try {
+        await nav.share({ title: project.title, text: "Made with ForgeBloxAI", url: shareUrl });
+        return;
+      } catch {
+        /* fall through to the desktop dialog */
+      }
+    }
+    setShareOpen(true);
+  }
 
   async function handleDownload() {
     if (downloading) return;
@@ -57,6 +87,7 @@ export function ProjectPanel({ project }: { project: GeneratedProject }) {
       const name =
         project.title.replace(/[^A-Za-z0-9]+/g, "_").replace(/^_|_$/g, "") || "RobloxProject";
       downloadBlob(blob, `${name}.zip`);
+      onDownloaded?.();
     } catch (e) {
       setError(
         e instanceof Error ? `Could not create the ZIP: ${e.message}` : "Could not create the ZIP.",
@@ -65,6 +96,7 @@ export function ProjectPanel({ project }: { project: GeneratedProject }) {
       setDownloading(false);
     }
   }
+
 
 
   return (
