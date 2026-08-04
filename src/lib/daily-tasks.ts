@@ -110,7 +110,7 @@ export async function trackTaskEvent(
     if (current >= def.target) continue;
 
     if (kind === "long_prompt") {
-      if (Number(options.value ?? 0) >= def.target * 0 + promptTargetOf(def)) {
+      if (Number(options.value ?? 0) >= promptTargetOf(def)) {
         await writeProgress(userId, def, def.target);
       }
       continue;
