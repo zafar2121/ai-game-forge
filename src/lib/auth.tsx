@@ -218,7 +218,7 @@ export function useCreditBalance(): number | null {
   if (!user) return 0;
   if (!emailVerified) return 0;
   if (!profile) return null;
-  return profile.plan === "studio" ? Infinity : profile.credits;
+  return profile.credits;
 }
 
 /** Spend one credit through the right store for the current visitor. */
