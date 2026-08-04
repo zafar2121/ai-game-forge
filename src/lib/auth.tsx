@@ -149,9 +149,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const spendProfileCredit = useCallback(async () => {
     if (!profile) return false;
-    if (profile.plan === "studio") return true;
-    if (profile.credits <= 0) return false;
-    const next = profile.credits - 1;
+    if (profile.credits < 1) return false;
+    const next = Math.round((profile.credits - 1) * 100) / 100;
     setProfile({ ...profile, credits: next });
     const { error } = await supabase
       .from("profiles")
@@ -163,6 +162,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     return true;
   }, [profile]);
+
+  const addCredits = useCallback(
+    async (amount: number) => {
+      if (!profile || amount <= 0) return;
+      const next = Math.round((profile.credits + amount) * 100) / 100;
+      const { data } = await supabase
+        .from("profiles")
+        .update({ credits: next })
+        .eq("user_id", profile.user_id)
+        .select("*")
+        .maybeSingle();
+      setProfile((data as Profile | null) ?? { ...profile, credits: next });
+    },
+    [profile],
+  );
 
   const updatePlan = useCallback(
     async (plan: Plan) => {
@@ -185,8 +199,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const emailVerified = Boolean(user?.email_confirmed_at ?? user?.confirmed_at);
 
   const value = useMemo(
-    () => ({ session, user, profile, emailVerified, loading, refreshProfile, signOut, spendProfileCredit, updatePlan }),
-    [session, user, profile, emailVerified, loading, refreshProfile, signOut, spendProfileCredit, updatePlan],
+    () => ({ session, user, profile, emailVerified, loading, refreshProfile, signOut, spendProfileCredit, addCredits, updatePlan }),
+    [session, user, profile, emailVerified, loading, refreshProfile, signOut, spendProfileCredit, addCredits, updatePlan],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
