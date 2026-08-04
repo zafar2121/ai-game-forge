@@ -200,8 +200,27 @@ export function ProjectPanel({ project }: { project: GeneratedProject }) {
           )}
           {downloading ? "Preparing download..." : "Download Project"}
 
-        </button>
+          </button>
+          {shareUrl && (
+            <button
+              type="button"
+              onClick={() => void handleShare()}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border px-6 py-3 text-sm font-semibold transition-colors hover:bg-secondary sm:w-auto"
+            >
+              <Share2 className="size-4 text-primary" />
+              Share
+            </button>
+          )}
+        </div>
       </div>
+      {shareUrl && (
+        <ShareDialog
+          open={shareOpen}
+          onOpenChange={setShareOpen}
+          url={shareUrl}
+          title={project.title}
+        />
+      )}
     </div>
   );
 }
