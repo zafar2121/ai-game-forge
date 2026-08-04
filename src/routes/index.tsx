@@ -10,6 +10,8 @@ import {
   SignInRequiredModal,
 } from "@/components/generate-gate-modals";
 import { saveProject } from "@/lib/projects";
+import { bumpLoginStreak, trackTaskEvent } from "@/lib/daily-tasks";
+import { categoryOf } from "@/lib/tasks";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
