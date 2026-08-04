@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      daily_tasks: {
+        Row: {
+          claimed_at: string | null
+          completed: boolean
+          created_at: string
+          day: string
+          id: string
+          progress: number
+          reward: number
+          task_key: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          completed?: boolean
+          created_at?: string
+          day?: string
+          id?: string
+          progress?: number
+          reward?: number
+          task_key: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string | null
+          completed?: boolean
+          created_at?: string
+          day?: string
+          id?: string
+          progress?: number
+          reward?: number
+          task_key?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -50,25 +89,34 @@ export type Database = {
       projects: {
         Row: {
           created_at: string
+          creator_name: string | null
           data: Json
           id: string
+          is_shared: boolean
           prompt: string
+          share_id: string
           title: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          creator_name?: string | null
           data: Json
           id?: string
+          is_shared?: boolean
           prompt: string
+          share_id?: string
           title: string
           user_id: string
         }
         Update: {
           created_at?: string
+          creator_name?: string | null
           data?: Json
           id?: string
+          is_shared?: boolean
           prompt?: string
+          share_id?: string
           title?: string
           user_id?: string
         }
