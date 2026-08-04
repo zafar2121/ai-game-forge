@@ -127,5 +127,6 @@ export function useCredits() {
 
 export function formatCredits(credits: number | null) {
   if (credits === null) return "—";
-  return Number.isFinite(credits) ? `${credits}` : "∞";
+  if (!Number.isFinite(credits)) return "∞";
+  return Number.isInteger(credits) ? `${credits}` : credits.toFixed(2);
 }
