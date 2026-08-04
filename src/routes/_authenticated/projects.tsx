@@ -98,7 +98,15 @@ function ProjectsPage() {
 
       {open && (
         <div className="mt-14">
-          <ProjectPanel project={open.data} />
+          <ProjectPanel
+            project={open.data}
+            shareId={open.share_id ?? null}
+            onDownloaded={() => void trackTaskEvent(user?.id, profile?.plan ?? "free", "download")}
+            onShared={() => void trackTaskEvent(user?.id, profile?.plan ?? "free", "share")}
+            onCopiedPrompt={() =>
+              void trackTaskEvent(user?.id, profile?.plan ?? "free", "copy_prompt")
+            }
+          />
         </div>
       )}
     </main>
