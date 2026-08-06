@@ -15,19 +15,34 @@ type Row = {
   claimed_at: string | null;
 };
 
-async function fetchRows(userId: string, day: string): Promise<Row[]> {
+/**
+ * Link tasks (Discord / Telegram / YouTube) are one-time per account, so they are
+ * stored on a fixed sentinel day instead of the rolling daily key.
+ */
+const LIFETIME_DAY = "1970-01-01";
+
+function dayFor(def: TaskDef) {
+  return def.kind === "link" ? LIFETIME_DAY : todayKey();
+}
+
+/** Only authenticated, non-Pro accounts can earn task rewards. */
+export function isRewardEligible(userId: string | null | undefined, plan: Plan) {
+  return Boolean(userId) && plan !== "pro";
+}
+
+async function fetchRows(userId: string, days: string[]): Promise<Row[]> {
   const { data } = await supabase
     .from("daily_tasks")
     .select("task_key, progress, completed, claimed_at")
     .eq("user_id", userId)
-    .eq("day", day);
+    .in("day", days);
   return (data ?? []) as Row[];
 }
 
 export async function loadDailyTasks(userId: string, plan: Plan): Promise<TaskState[]> {
   const day = todayKey();
   const defs = tasksForDay(plan, userId, day);
-  const rows = await fetchRows(userId, day);
+  const rows = await fetchRows(userId, [day, LIFETIME_DAY]);
   return defs.map((def) => {
     const row = rows.find((r) => r.task_key === def.key);
     const progress = Math.min(def.target, row?.progress ?? 0);
@@ -45,7 +60,7 @@ async function writeProgress(userId: string, def: TaskDef, progress: number) {
   await supabase.from("daily_tasks").upsert(
     {
       user_id: userId,
-      day: todayKey(),
+      day: dayFor(def),
       task_key: def.key,
       reward: def.reward,
       progress: capped,
@@ -55,9 +70,33 @@ async function writeProgress(userId: string, def: TaskDef, progress: number) {
   );
 }
 
-/** Mark a link task as visited (free plan tasks). */
-export async function completeLinkTask(userId: string, def: TaskDef) {
-  await writeProgress(userId, def, def.target);
+export type LinkProof = {
+  /** The external page was actually opened in a new tab. */
+  opened: boolean;
+  /** The tab lost focus / visibility, i.e. the user really left for the external page. */
+  leftPage: boolean;
+  /** Milliseconds spent away from ForgeBloxAI. */
+  awayMs: number;
+};
+
+/** Minimum time away from the app before a link task can be verified. */
+export const LINK_VERIFY_MS = 15_000;
+
+/**
+ * Verify a link task. Opening the page is not enough: the visit must be proven
+ * (real new tab + the user actually left this tab long enough). Returns false
+ * when verification fails, leaving the task incomplete.
+ */
+export async function verifyLinkTask(
+  userId: string | null | undefined,
+  plan: Plan,
+  def: TaskDef,
+  proof: LinkProof,
+): Promise<boolean> {
+  if (!isRewardEligible(userId, plan)) return false;
+  if (!proof.opened || !proof.leftPage || proof.awayMs < LINK_VERIFY_MS) return false;
+  await writeProgress(userId!, def, def.target);
+  return true;
 }
 
 const UNIQUE_KEY = "fbx.task.unique";
