@@ -181,11 +181,17 @@ function TasksPage() {
         </p>
       </div>
 
-      {!emailVerified && (
+      {!eligible && (
+        <p className="mt-4 text-sm text-muted-foreground">You are not eligible for task rewards.</p>
+      )}
+
+      {eligible && !emailVerified && (
         <p className="mt-4 text-sm text-muted-foreground">
           Verify your email to start claiming task rewards.
         </p>
       )}
+
+      {notice && <p className="mt-4 text-sm text-muted-foreground">{notice}</p>}
 
       <div className="mt-6 space-y-4">
         {tasks === null && (
@@ -211,7 +217,7 @@ function TasksPage() {
                 ) : task.completed ? (
                   <button
                     type="button"
-                    disabled={busy === task.key || !emailVerified}
+                    disabled={busy === task.key || !emailVerified || !eligible}
                     onClick={() => void handleClaim(task)}
                     className="btn-primary inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold"
                   >
@@ -223,20 +229,37 @@ function TasksPage() {
                     Claim reward
                   </button>
                 ) : task.url ? (
-                  <button
-                    type="button"
-                    disabled={busy === task.key}
-                    onClick={() => void handleLink(task)}
-                    className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-xs font-semibold transition-colors hover:bg-secondary"
-                  >
-                    <ExternalLink className="size-3.5 text-primary" /> Open & complete
-                  </button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <a
+                      href={task.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => handleOpen(task)}
+                      className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-xs font-semibold transition-colors hover:bg-secondary"
+                    >
+                      <ExternalLink className="size-3.5 text-primary" /> Open link
+                    </a>
+                    <button
+                      type="button"
+                      disabled={busy === task.key || !opened[task.key] || !eligible}
+                      onClick={() => void handleVerify(task)}
+                      className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-xs font-semibold transition-colors hover:bg-secondary disabled:opacity-50"
+                    >
+                      {busy === task.key ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        <ShieldCheck className="size-3.5 text-primary" />
+                      )}
+                      Verify
+                    </button>
+                  </div>
                 ) : (
                   <span className="font-mono text-[11px] text-muted-foreground">
                     {task.progress}/{task.target}
                   </span>
                 )}
               </div>
+
               <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-secondary">
                 <div
                   className="h-full rounded-full bg-primary transition-all duration-500"
