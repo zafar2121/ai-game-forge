@@ -1,9 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
-import { Check, ExternalLink, Loader2, Timer, Zap } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Check, ExternalLink, Loader2, ShieldCheck, Timer, Zap } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { formatCredits } from "@/lib/credits";
-import { claimTask, completeLinkTask, loadDailyTasks, type TaskState } from "@/lib/daily-tasks";
+import {
+  claimTask,
+  isRewardEligible,
+  loadDailyTasks,
+  verifyLinkTask,
+  LINK_VERIFY_MS,
+  type TaskState,
+} from "@/lib/daily-tasks";
 import { msUntilReset } from "@/lib/tasks";
 
 export const Route = createFileRoute("/tasks")({
