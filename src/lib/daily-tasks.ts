@@ -139,10 +139,12 @@ export async function trackTaskEvent(
   options: { amount?: number; value?: string | number } = {},
 ) {
   if (!isRewardEligible(userId, plan)) return; // guests and Pro users earn nothing
+  const uid = userId as string;
   const day = todayKey();
-  const defs = tasksForDay(plan, userId!, day).filter((d) => d.kind === kind);
+  const defs = tasksForDay(plan, uid, day).filter((d) => d.kind === kind);
   if (defs.length === 0) return;
-  const rows = await fetchRows(userId!, [day, LIFETIME_DAY]);
+  const rows = await fetchRows(uid, [day, LIFETIME_DAY]);
+
 
   for (const def of defs) {
     const current = rows.find((r) => r.task_key === def.key)?.progress ?? 0;
