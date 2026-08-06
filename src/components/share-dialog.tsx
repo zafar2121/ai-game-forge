@@ -71,7 +71,7 @@ export function ShareDialog({
               key={t.label}
               href={t.href}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="flex items-center gap-2 rounded-xl border border-border bg-surface/60 px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
             >
               <t.icon className="size-4 text-primary" />

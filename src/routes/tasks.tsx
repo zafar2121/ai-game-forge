@@ -1,9 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
-import { Check, ExternalLink, Loader2, Timer, Zap } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Check, ExternalLink, Loader2, ShieldCheck, Timer, Zap } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { formatCredits } from "@/lib/credits";
-import { claimTask, completeLinkTask, loadDailyTasks, type TaskState } from "@/lib/daily-tasks";
+import {
+  claimTask,
+  isRewardEligible,
+  loadDailyTasks,
+  verifyLinkTask,
+  LINK_VERIFY_MS,
+  type TaskState,
+} from "@/lib/daily-tasks";
 import { msUntilReset } from "@/lib/tasks";
 
 export const Route = createFileRoute("/tasks")({
@@ -37,8 +44,40 @@ function TasksPage() {
   const { user, profile, emailVerified, addCredits, refreshProfile } = useAuth();
   const [tasks, setTasks] = useState<TaskState[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [opened, setOpened] = useState<Record<string, boolean>>({});
+  const [notice, setNotice] = useState<string | null>(null);
   const countdown = useCountdown();
   const plan = profile?.plan ?? "free";
+  const eligible = isRewardEligible(user?.id, plan);
+
+  // Tracks how long the visitor actually left this tab after opening a task link.
+  const away = useRef<Record<string, number>>({});
+  const leftAt = useRef<number | null>(null);
+  const activeTask = useRef<string | null>(null);
+
+  useEffect(() => {
+    const onHide = () => {
+      if (document.visibilityState === "hidden") leftAt.current = Date.now();
+    };
+    const onBlur = () => {
+      if (leftAt.current === null) leftAt.current = Date.now();
+    };
+    const onBack = () => {
+      const key = activeTask.current;
+      if (key && leftAt.current !== null) {
+        away.current[key] = (away.current[key] ?? 0) + (Date.now() - leftAt.current);
+      }
+      leftAt.current = null;
+    };
+    document.addEventListener("visibilitychange", onHide);
+    window.addEventListener("blur", onBlur);
+    window.addEventListener("focus", onBack);
+    return () => {
+      document.removeEventListener("visibilitychange", onHide);
+      window.removeEventListener("blur", onBlur);
+      window.removeEventListener("focus", onBack);
+    };
+  }, []);
 
   const reload = useCallback(async () => {
     if (!user) return;
@@ -54,7 +93,8 @@ function TasksPage() {
       <main className="mx-auto max-w-2xl px-5 py-20 text-center">
         <h1 className="text-4xl font-semibold">Daily Tasks</h1>
         <p className="mt-3 text-muted-foreground">
-          Guests cannot earn credits. Create a free account to start completing daily tasks.
+          You are not eligible for task rewards. Create a free account to start completing daily
+          tasks.
         </p>
         <div className="mt-8 flex justify-center gap-3">
           <Link to="/signup" className="btn-primary rounded-xl px-6 py-3 text-sm font-semibold">
@@ -73,22 +113,50 @@ function TasksPage() {
 
   async function handleClaim(task: TaskState) {
     if (!user) return;
+    if (!eligible) {
+      setNotice("You are not eligible for task rewards.");
+      return;
+    }
     setBusy(task.key);
-    const reward = await claimTask(user.id, task);
+    const reward = await claimTask(user.id, plan, task);
     if (reward > 0) await addCredits(reward);
     await refreshProfile();
     await reload();
     setBusy(null);
   }
 
-  async function handleLink(task: TaskState) {
+  function handleOpen(task: TaskState) {
+    activeTask.current = task.key;
+    away.current[task.key] = away.current[task.key] ?? 0;
+    setOpened((prev) => ({ ...prev, [task.key]: true }));
+    setNotice(null);
+  }
+
+  async function handleVerify(task: TaskState) {
     if (!user) return;
-    window.open(task.url, "_blank", "noopener,noreferrer");
+    if (!eligible) {
+      setNotice("You are not eligible for task rewards.");
+      return;
+    }
     setBusy(task.key);
-    await completeLinkTask(user.id, task);
-    await reload();
+    const ok = await verifyLinkTask(user.id, plan, task, {
+      opened: Boolean(opened[task.key]),
+      leftPage: (away.current[task.key] ?? 0) > 0,
+      awayMs: away.current[task.key] ?? 0,
+    });
+    if (!ok) {
+      setNotice(
+        `Not verified yet — open the page, complete the action, and stay there at least ${Math.round(
+          LINK_VERIFY_MS / 1000,
+        )} seconds before verifying.`,
+      );
+    } else {
+      setNotice(null);
+      await reload();
+    }
     setBusy(null);
   }
+
 
   return (
     <main className="mx-auto max-w-3xl px-5 py-20">
@@ -113,11 +181,17 @@ function TasksPage() {
         </p>
       </div>
 
-      {!emailVerified && (
+      {!eligible && (
+        <p className="mt-4 text-sm text-muted-foreground">You are not eligible for task rewards.</p>
+      )}
+
+      {eligible && !emailVerified && (
         <p className="mt-4 text-sm text-muted-foreground">
           Verify your email to start claiming task rewards.
         </p>
       )}
+
+      {notice && <p className="mt-4 text-sm text-muted-foreground">{notice}</p>}
 
       <div className="mt-6 space-y-4">
         {tasks === null && (
@@ -143,7 +217,7 @@ function TasksPage() {
                 ) : task.completed ? (
                   <button
                     type="button"
-                    disabled={busy === task.key || !emailVerified}
+                    disabled={busy === task.key || !emailVerified || !eligible}
                     onClick={() => void handleClaim(task)}
                     className="btn-primary inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold"
                   >
@@ -155,20 +229,37 @@ function TasksPage() {
                     Claim reward
                   </button>
                 ) : task.url ? (
-                  <button
-                    type="button"
-                    disabled={busy === task.key}
-                    onClick={() => void handleLink(task)}
-                    className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-xs font-semibold transition-colors hover:bg-secondary"
-                  >
-                    <ExternalLink className="size-3.5 text-primary" /> Open & complete
-                  </button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <a
+                      href={task.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => handleOpen(task)}
+                      className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-xs font-semibold transition-colors hover:bg-secondary"
+                    >
+                      <ExternalLink className="size-3.5 text-primary" /> Open link
+                    </a>
+                    <button
+                      type="button"
+                      disabled={busy === task.key || !opened[task.key] || !eligible}
+                      onClick={() => void handleVerify(task)}
+                      className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-xs font-semibold transition-colors hover:bg-secondary disabled:opacity-50"
+                    >
+                      {busy === task.key ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        <ShieldCheck className="size-3.5 text-primary" />
+                      )}
+                      Verify
+                    </button>
+                  </div>
                 ) : (
                   <span className="font-mono text-[11px] text-muted-foreground">
                     {task.progress}/{task.target}
                   </span>
                 )}
               </div>
+
               <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-secondary">
                 <div
                   className="h-full rounded-full bg-primary transition-all duration-500"

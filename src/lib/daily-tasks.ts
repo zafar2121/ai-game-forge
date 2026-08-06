@@ -15,19 +15,34 @@ type Row = {
   claimed_at: string | null;
 };
 
-async function fetchRows(userId: string, day: string): Promise<Row[]> {
+/**
+ * Link tasks (Discord / Telegram / YouTube) are one-time per account, so they are
+ * stored on a fixed sentinel day instead of the rolling daily key.
+ */
+const LIFETIME_DAY = "1970-01-01";
+
+function dayFor(def: TaskDef) {
+  return def.kind === "link" ? LIFETIME_DAY : todayKey();
+}
+
+/** Only authenticated, non-Pro accounts can earn task rewards. */
+export function isRewardEligible(userId: string | null | undefined, plan: Plan) {
+  return Boolean(userId) && plan !== "pro";
+}
+
+async function fetchRows(userId: string, days: string[]): Promise<Row[]> {
   const { data } = await supabase
     .from("daily_tasks")
     .select("task_key, progress, completed, claimed_at")
     .eq("user_id", userId)
-    .eq("day", day);
+    .in("day", days);
   return (data ?? []) as Row[];
 }
 
 export async function loadDailyTasks(userId: string, plan: Plan): Promise<TaskState[]> {
   const day = todayKey();
   const defs = tasksForDay(plan, userId, day);
-  const rows = await fetchRows(userId, day);
+  const rows = await fetchRows(userId, [day, LIFETIME_DAY]);
   return defs.map((def) => {
     const row = rows.find((r) => r.task_key === def.key);
     const progress = Math.min(def.target, row?.progress ?? 0);
@@ -45,7 +60,7 @@ async function writeProgress(userId: string, def: TaskDef, progress: number) {
   await supabase.from("daily_tasks").upsert(
     {
       user_id: userId,
-      day: todayKey(),
+      day: dayFor(def),
       task_key: def.key,
       reward: def.reward,
       progress: capped,
@@ -55,9 +70,33 @@ async function writeProgress(userId: string, def: TaskDef, progress: number) {
   );
 }
 
-/** Mark a link task as visited (free plan tasks). */
-export async function completeLinkTask(userId: string, def: TaskDef) {
-  await writeProgress(userId, def, def.target);
+export type LinkProof = {
+  /** The external page was actually opened in a new tab. */
+  opened: boolean;
+  /** The tab lost focus / visibility, i.e. the user really left for the external page. */
+  leftPage: boolean;
+  /** Milliseconds spent away from ForgeBloxAI. */
+  awayMs: number;
+};
+
+/** Minimum time away from the app before a link task can be verified. */
+export const LINK_VERIFY_MS = 15_000;
+
+/**
+ * Verify a link task. Opening the page is not enough: the visit must be proven
+ * (real new tab + the user actually left this tab long enough). Returns false
+ * when verification fails, leaving the task incomplete.
+ */
+export async function verifyLinkTask(
+  userId: string | null | undefined,
+  plan: Plan,
+  def: TaskDef,
+  proof: LinkProof,
+): Promise<boolean> {
+  if (!isRewardEligible(userId, plan)) return false;
+  if (!proof.opened || !proof.leftPage || proof.awayMs < LINK_VERIFY_MS) return false;
+  await writeProgress(userId!, def, def.target);
+  return true;
 }
 
 const UNIQUE_KEY = "fbx.task.unique";
@@ -99,11 +138,13 @@ export async function trackTaskEvent(
   kind: TaskKind,
   options: { amount?: number; value?: string | number } = {},
 ) {
-  if (!userId) return; // guests never earn credits
+  if (!isRewardEligible(userId, plan)) return; // guests and Pro users earn nothing
+  const uid = userId as string;
   const day = todayKey();
-  const defs = tasksForDay(plan, userId, day).filter((d) => d.kind === kind);
+  const defs = tasksForDay(plan, uid, day).filter((d) => d.kind === kind);
   if (defs.length === 0) return;
-  const rows = await fetchRows(userId, day);
+  const rows = await fetchRows(uid, [day, LIFETIME_DAY]);
+
 
   for (const def of defs) {
     const current = rows.find((r) => r.task_key === def.key)?.progress ?? 0;
@@ -111,7 +152,7 @@ export async function trackTaskEvent(
 
     if (kind === "long_prompt") {
       if (Number(options.value ?? 0) >= promptTargetOf(def)) {
-        await writeProgress(userId, def, def.target);
+        await writeProgress(uid, def, def.target);
       }
       continue;
     }
@@ -119,14 +160,14 @@ export async function trackTaskEvent(
       const set = uniqueSet(def.key);
       if (options.value) set.add(String(options.value));
       saveUniqueSet(def.key, set);
-      await writeProgress(userId, def, Math.max(current, set.size));
+      await writeProgress(uid, def, Math.max(current, set.size));
       continue;
     }
     if (kind === "active_minutes" || kind === "login_streak") {
-      await writeProgress(userId, def, Math.max(current, options.amount ?? 0));
+      await writeProgress(uid, def, Math.max(current, options.amount ?? 0));
       continue;
     }
-    await writeProgress(userId, def, current + (options.amount ?? 1));
+    await writeProgress(uid, def, current + (options.amount ?? 1));
   }
 }
 
@@ -137,13 +178,17 @@ function promptTargetOf(def: TaskDef) {
 }
 
 /** Claim a completed task once; returns the reward added, or 0. */
-export async function claimTask(userId: string, def: TaskDef): Promise<number> {
-  const day = todayKey();
+export async function claimTask(
+  userId: string | null | undefined,
+  plan: Plan,
+  def: TaskDef,
+): Promise<number> {
+  if (!isRewardEligible(userId, plan)) return 0;
   const { data } = await supabase
     .from("daily_tasks")
     .update({ claimed_at: new Date().toISOString() })
-    .eq("user_id", userId)
-    .eq("day", day)
+    .eq("user_id", userId as string)
+    .eq("day", dayFor(def))
     .eq("task_key", def.key)
     .eq("completed", true)
     .is("claimed_at", null)

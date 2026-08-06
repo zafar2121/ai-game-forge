@@ -34,7 +34,7 @@ function Contact() {
         <a
           href="https://discord.gg/ZujbB8uMy"
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
           className="panel block p-6 transition-colors hover:border-primary/40"
         >
           <MessageSquare className="size-5 text-primary" />
