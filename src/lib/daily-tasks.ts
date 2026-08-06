@@ -152,7 +152,7 @@ export async function trackTaskEvent(
 
     if (kind === "long_prompt") {
       if (Number(options.value ?? 0) >= promptTargetOf(def)) {
-        await writeProgress(userId, def, def.target);
+        await writeProgress(uid, def, def.target);
       }
       continue;
     }
@@ -160,14 +160,14 @@ export async function trackTaskEvent(
       const set = uniqueSet(def.key);
       if (options.value) set.add(String(options.value));
       saveUniqueSet(def.key, set);
-      await writeProgress(userId, def, Math.max(current, set.size));
+      await writeProgress(uid, def, Math.max(current, set.size));
       continue;
     }
     if (kind === "active_minutes" || kind === "login_streak") {
-      await writeProgress(userId, def, Math.max(current, options.amount ?? 0));
+      await writeProgress(uid, def, Math.max(current, options.amount ?? 0));
       continue;
     }
-    await writeProgress(userId, def, current + (options.amount ?? 1));
+    await writeProgress(uid, def, current + (options.amount ?? 1));
   }
 }
 
