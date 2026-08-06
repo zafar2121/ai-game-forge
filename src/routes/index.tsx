@@ -15,9 +15,9 @@ import { categoryOf } from "@/lib/tasks";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    prompt: typeof search.prompt === "string" ? search.prompt : undefined,
-    go: search.go === true || search.go === "true" ? true : undefined,
+  validateSearch: (search: Record<string, unknown>): { prompt?: string; go?: boolean } => ({
+    ...(typeof search.prompt === "string" ? { prompt: search.prompt } : {}),
+    ...(search.go === true || search.go === "true" ? { go: true } : {}),
   }),
 
   head: () => ({
