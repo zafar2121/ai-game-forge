@@ -178,13 +178,17 @@ function promptTargetOf(def: TaskDef) {
 }
 
 /** Claim a completed task once; returns the reward added, or 0. */
-export async function claimTask(userId: string, def: TaskDef): Promise<number> {
-  const day = todayKey();
+export async function claimTask(
+  userId: string | null | undefined,
+  plan: Plan,
+  def: TaskDef,
+): Promise<number> {
+  if (!isRewardEligible(userId, plan)) return 0;
   const { data } = await supabase
     .from("daily_tasks")
     .update({ claimed_at: new Date().toISOString() })
-    .eq("user_id", userId)
-    .eq("day", day)
+    .eq("user_id", userId as string)
+    .eq("day", dayFor(def))
     .eq("task_key", def.key)
     .eq("completed", true)
     .is("claimed_at", null)
