@@ -55,6 +55,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          afk_last_tick: string | null
+          afk_pending: number
           created_at: string
           credits: number
           email: string | null
@@ -65,6 +67,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          afk_last_tick?: string | null
+          afk_pending?: number
           created_at?: string
           credits?: number
           email?: string | null
@@ -75,6 +79,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          afk_last_tick?: string | null
+          afk_pending?: number
           created_at?: string
           credits?: number
           email?: string | null
@@ -145,7 +151,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      afk_claim: {
+        Args: never
+        Returns: {
+          afk_pending: number
+          credits: number
+        }[]
+      }
+      afk_stop: { Args: never; Returns: number }
+      afk_tick: { Args: never; Returns: number }
     }
     Enums: {
       [_ in never]: never
