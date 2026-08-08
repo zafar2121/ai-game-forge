@@ -61,6 +61,16 @@ export function SiteHeader() {
               My Projects
             </Link>
           )}
+          {user && (
+            <Link
+              to="/afk"
+              activeProps={{ className: "text-foreground" }}
+              inactiveProps={{ className: "text-muted-foreground" }}
+              className="rounded-lg px-3 py-2 text-sm transition-colors hover:text-foreground"
+            >
+              AFK Zone
+            </Link>
+          )}
           <span className="ml-2 rounded-lg border border-border bg-surface/60 px-3 py-1.5 font-mono text-xs text-muted-foreground">
             ⚡ Credits: {formatCredits(credits)}
           </span>
@@ -124,6 +134,15 @@ export function SiteHeader() {
               className="block rounded-lg px-2 py-2.5 text-sm text-muted-foreground hover:text-foreground"
             >
               My Projects
+            </Link>
+          )}
+          {user && (
+            <Link
+              to="/afk"
+              onClick={() => setOpen(false)}
+              className="block rounded-lg px-2 py-2.5 text-sm text-muted-foreground hover:text-foreground"
+            >
+              AFK Zone
             </Link>
           )}
           <span className="mt-1 block rounded-lg px-2 py-2.5 font-mono text-xs text-muted-foreground">

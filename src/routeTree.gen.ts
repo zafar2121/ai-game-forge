@@ -20,6 +20,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as TasksRouteImport } from './routes/tasks'
 import { Route as TemplatesRouteImport } from './routes/templates'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as AuthenticatedAfkRouteImport } from './routes/_authenticated/afk'
 import { Route as AuthenticatedProjectsRouteImport } from './routes/_authenticated/projects'
 import { Route as SShareIdRouteImport } from './routes/s.$shareId'
 
@@ -77,6 +78,11 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAfkRoute = AuthenticatedAfkRouteImport.update({
+  id: '/afk',
+  path: '/afk',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedProjectsRoute = AuthenticatedProjectsRouteImport.update({
   id: '/projects',
   path: '/projects',
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/tasks': typeof TasksRoute
   '/templates': typeof TemplatesRoute
   '/terms': typeof TermsRoute
+  '/afk': typeof AuthenticatedAfkRoute
   '/projects': typeof AuthenticatedProjectsRoute
   '/s/$shareId': typeof SShareIdRoute
 }
@@ -113,6 +120,7 @@ export interface FileRoutesByTo {
   '/tasks': typeof TasksRoute
   '/templates': typeof TemplatesRoute
   '/terms': typeof TermsRoute
+  '/afk': typeof AuthenticatedAfkRoute
   '/projects': typeof AuthenticatedProjectsRoute
   '/s/$shareId': typeof SShareIdRoute
 }
@@ -129,6 +137,7 @@ export interface FileRoutesById {
   '/tasks': typeof TasksRoute
   '/templates': typeof TemplatesRoute
   '/terms': typeof TermsRoute
+  '/_authenticated/afk': typeof AuthenticatedAfkRoute
   '/_authenticated/projects': typeof AuthenticatedProjectsRoute
   '/s/$shareId': typeof SShareIdRoute
 }
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/templates'
     | '/terms'
+    | '/afk'
     | '/projects'
     | '/s/$shareId'
   fileRoutesByTo: FileRoutesByTo
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/templates'
     | '/terms'
+    | '/afk'
     | '/projects'
     | '/s/$shareId'
   id:
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/templates'
     | '/terms'
+    | '/_authenticated/afk'
     | '/_authenticated/projects'
     | '/s/$shareId'
   fileRoutesById: FileRoutesById
@@ -272,6 +284,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/afk': {
+      id: '/_authenticated/afk'
+      path: '/afk'
+      fullPath: '/afk'
+      preLoaderRoute: typeof AuthenticatedAfkRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/projects': {
       id: '/_authenticated/projects'
       path: '/projects'
@@ -290,10 +309,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAfkRoute: typeof AuthenticatedAfkRoute
   AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAfkRoute: AuthenticatedAfkRoute,
   AuthenticatedProjectsRoute: AuthenticatedProjectsRoute,
 }
 
@@ -317,13 +338,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
